@@ -72,7 +72,7 @@ Entradas Digitais:
 Entrada Analógica: 
 - Joystick: movimentação do personagem.
 
-- Saídas Digitais:
+Saídas Digitais:
 - Speaker: sons provenientes do jogo.
 - Fita de LEDs: Aumentar/Diminuir intensidade luminosa de LEDs conforme a intensidade dos sons do jogo; Acender LEDs em diferentes cores quando determinados botões forem clicados.
 
