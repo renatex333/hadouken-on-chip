@@ -81,3 +81,5 @@ Entrada Analógica:
 <!--
 Faca um esboco de como seria esse controle (vai ter uma etapa que terão que detalhar melhor isso).
 -->
+
+![image](https://user-images.githubusercontent.com/66042074/190531358-5116ef6f-468c-405b-be27-82e65b5749bc.jpg)
