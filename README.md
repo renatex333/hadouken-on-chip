@@ -30,13 +30,15 @@ Amantes dos jogos de Arcade que querem sentir aquela boa nostalgia ou Gamers mai
 <!-- Qual software que seu controle vai controlar? -->
 O software a ser controlado será o Emulador MAME para jogar, em especial, o jogo Street Fighter, com a possibilidade de jogar também os outros jogos disponibilizados pelo emulador.
 
-### Jornada do usuários (3 pts)
+### Jornada dos usuários
 
-<!-- Descreva ao menos duas jornadas de usuários distintos, é para caprichar! -->
-TERMINAR ESSA PARTEEEE
-O usuário quer um controle similar aos utilizados em fliperamas para jogar jogos arcade no computador, isso pois jogar no teclado é inconveniente devido ao posicionamento das teclas e como suas mãos se comportam na jogabilidade.
+Caso 1: O usuário se encontra em uma faixa etária na qual durante sua juventude eram populares os chamados fliperamas, máquinas que continham um visor, alguns botões e talvez o elemento mais icônico, o joystick. 
+Hoje, com a popularização de consoles e computadores capazes de rodar os mais complexos jogos, é difícil achar uma máquina de fliperama, especialmente em cidades menores. A alternativa que sobra para o usuário, nostálgico da experiência que marcou parte de sua vida, são emuladores para computador. 
+Tal solução, entretanto, se demonstra incompleta, uma vez que jogar com um teclado difere muito da experiência original. Como solução, surge o controle a ser desenvolvido pelo time que visa ao máximo reviver os controles físicos dos antigos fliperamas.
 
-### Comandos/ Feedbacks (2 pts)
+Caso 2: O usuário se encontra em uma faixa etária na qual fliperamas já não são/eram mais populares na sua juventude. Mesmo com muitas opções de entretenimento, o usuário gostaria de experimentar algo diferente do que é oferecido por consoles e computadores. Procura então por jogos mais antigos e se depara com emuladores de fliperama, porém ainda se encontra insatisfeito por não conseguir ter toda a experiência da máquina de jogos. O controle a ser desenvolvido pelo time vem para completar o que faltava para que o usuário fuja do comum e tenha uma imersão completa em outra forma de jogar.
+
+### Comandos/ Feedbacks
 
 <!-- 
 Quais são os comandos/ operacões possíveis do seu controle?
@@ -56,7 +58,7 @@ Feedbacks que podem ser devolvidos pelo controle:
 
 - Ideias de implementação (sujeito à limitações do software): Aumentar/Diminuir intensidade luminosa de LEDs conforme a intensidade dos sons do jogo; Acender LEDs em diferentes cores quando determinados botões forem clicados.
 
-## In/OUT (3 pts)
+### In/OUT
 
 <!--
 Para cada Comando/ Feedback do seu controle, associe qual sensores/ atuadores pretende utilizar? Faca em formato de lista, exemplo:
@@ -76,7 +78,7 @@ Saídas Digitais:
 - Speaker: sons provenientes do jogo.
 - Fita de LEDs: Aumentar/Diminuir intensidade luminosa de LEDs conforme a intensidade dos sons do jogo; Acender LEDs em diferentes cores quando determinados botões forem clicados.
 
-### Design (2 pts)
+### Design
 
 <!--
 Faca um esboco de como seria esse controle (vai ter uma etapa que terão que detalhar melhor isso).
