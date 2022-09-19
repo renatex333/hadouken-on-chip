@@ -201,11 +201,11 @@ int hc05_init(void) {
 	vTaskDelay( 500 / portTICK_PERIOD_MS);
 	usart_send_command(USART_COM, buffer_rx, 1000, "AT", 100);
 	vTaskDelay( 500 / portTICK_PERIOD_MS);
-	usart_send_command(USART_COM, buffer_rx, 1000, "AT+NAMEagoravai", 100);
+	usart_send_command(USART_COM, buffer_rx, 1000, "AT+NAMEJames", 100);
 	vTaskDelay( 500 / portTICK_PERIOD_MS);
 	usart_send_command(USART_COM, buffer_rx, 1000, "AT", 100);
 	vTaskDelay( 500 / portTICK_PERIOD_MS);
-	usart_send_command(USART_COM, buffer_rx, 1000, "AT+PIN0000", 100);
+	usart_send_command(USART_COM, buffer_rx, 1000, "AT+PIN1234", 100);
 }
 
 /************************************************************************/
@@ -247,7 +247,7 @@ void task_bluetooth(void) {
 		usart_write(USART_COM, eof);
 
 		// dorme por 500 ms
-		vTaskDelay(500 / portTICK_PERIOD_MS);
+		vTaskDelay(1 / portTICK_PERIOD_MS);
 	}
 }
 
