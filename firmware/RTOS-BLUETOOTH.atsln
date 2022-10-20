@@ -5,6 +5,10 @@ VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "RTOS-BLUETOOTH", "RTOS-BLUETOOTH.cproj", "{DCE6C7E3-EE26-4D79-826B-08594B9AD897}"
 EndProject
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "RTOS-OLED-Xplained-Pro", "..\..\..\..\Provas\Av1\22b-emb-av1-renatex333\RTOS-OLED-Xplained-Pro\RTOS-OLED-Xplained-Pro.cproj", "{449928D1-3C21-415F-B5C7-613E200637AB}"
+EndProject
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "Lab4-1", "..\..\..\..\Labs\22b-emb-labs-renatex333\Lab4-ADC-IRQ-RTOS\Lab4-1.cproj", "{92070B8D-E9FA-410D-96ED-FF4115CF6864}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -15,6 +19,14 @@ Global
 		{DCE6C7E3-EE26-4D79-826B-08594B9AD897}.Debug|ARM.Build.0 = Debug|ARM
 		{DCE6C7E3-EE26-4D79-826B-08594B9AD897}.Release|ARM.ActiveCfg = Release|ARM
 		{DCE6C7E3-EE26-4D79-826B-08594B9AD897}.Release|ARM.Build.0 = Release|ARM
+		{449928D1-3C21-415F-B5C7-613E200637AB}.Debug|ARM.ActiveCfg = Debug|ARM
+		{449928D1-3C21-415F-B5C7-613E200637AB}.Debug|ARM.Build.0 = Debug|ARM
+		{449928D1-3C21-415F-B5C7-613E200637AB}.Release|ARM.ActiveCfg = Release|ARM
+		{449928D1-3C21-415F-B5C7-613E200637AB}.Release|ARM.Build.0 = Release|ARM
+		{92070B8D-E9FA-410D-96ED-FF4115CF6864}.Debug|ARM.ActiveCfg = Debug|ARM
+		{92070B8D-E9FA-410D-96ED-FF4115CF6864}.Debug|ARM.Build.0 = Debug|ARM
+		{92070B8D-E9FA-410D-96ED-FF4115CF6864}.Release|ARM.ActiveCfg = Release|ARM
+		{92070B8D-E9FA-410D-96ED-FF4115CF6864}.Release|ARM.Build.0 = Release|ARM
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
