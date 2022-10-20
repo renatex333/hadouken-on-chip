@@ -19,11 +19,60 @@
 #define LED_IDX      8
 #define LED_IDX_MASK (1 << LED_IDX)
 
+
+// #region 
+
 // Botão
 #define BUT_PIO      PIOA
 #define BUT_PIO_ID   ID_PIOA
 #define BUT_IDX      11
 #define BUT_IDX_MASK (1 << BUT_IDX)
+
+// Botão Azul 1 - PC31
+#define BUT_PIO_BLUE_1      PIOC
+#define BUT_PIO_ID_BLUE_1   ID_PIOC
+#define BUT_IDX_BLUE_1      31
+#define BUT_IDX_MASK_BLUE_1 (1 << BUT_IDX_BLUE_1)
+// Botão Azul 2 - PA19
+#define BUT_PIO_BLUE_2      PIOA
+#define BUT_PIO_ID_BLUE_2  ID_PIOA
+#define BUT_IDX_BLUE_2      19
+#define BUT_IDX_MASK_BLUE_2 (1 << BUT_IDX_BLUE_2)
+// Botão Azul 3 - PB3
+#define BUT_PIO_BLUE_3      PIOB
+#define BUT_PIO_ID_BLUE_3   ID_PIOB
+#define BUT_IDX_BLUE_3      3
+#define BUT_IDX_MASK_BLUE_3 (1 << BUT_IDX_BLUE_3)
+// Botão Azul 4 - PB2
+#define BUT_PIO_BLUE_4      PIOB
+#define BUT_PIO_ID_BLUE_4   ID_PIOB
+#define BUT_IDX_BLUE_4      2
+#define BUT_IDX_MASK_BLUE_4 (1 << BUT_IDX_BLUE_4)
+
+// Botão Vermelho 5 - PD30
+#define BUT_PIO_RED_5      PIOD
+#define BUT_PIO_ID_RED_5   ID_PIOD
+#define BUT_IDX_RED_5      30
+#define BUT_IDX_MASK_RED_5 (1 << BUT_IDX_RED_5)
+// Botão Vermelho 6 - PC13
+#define BUT_PIO_RED_6      PIOC
+#define BUT_PIO_ID_RED_6   ID_PIOC
+#define BUT_IDX_RED_6      13
+#define BUT_IDX_MASK_RED_6 (1 << BUT_IDX_RED_6)
+// Botão Vermelho 7 - PA6
+#define BUT_PIO_RED_7      PIOA
+#define BUT_PIO_ID_RED_7   ID_PIOA
+#define BUT_IDX_RED_7      6
+#define BUT_IDX_MASK_RED_7 (1 << BUT_IDX_RED_7)
+// Botão Vermelho 8 - PD11
+#define BUT_PIO_RED_8      PIOD
+#define BUT_PIO_ID_RED_8   ID_PIOD
+#define BUT_IDX_RED_8      11
+#define BUT_IDX_MASK_RED_8 (1 << BUT_IDX_RED_8)
+
+// #endregion
+
+
 
 // usart (bluetooth ou serial)
 // Descomente para enviar dados
@@ -46,6 +95,12 @@
 #define TASK_BLUETOOTH_STACK_SIZE            (4096/sizeof(portSTACK_TYPE))
 #define TASK_BLUETOOTH_STACK_PRIORITY        (tskIDLE_PRIORITY)
 
+//task Button Handler
+#define TASK_BUTTON_HANDLER_STACK_SIZE            (4096/sizeof(portSTACK_TYPE))
+#define TASK_BUTTON_HANDLER_STACK_PRIORITY        (tskIDLE_PRIORITY)
+
+//Queue dos botoes
+QueueHandle_t xQueueButton;
 /************************************************************************/
 /* prototypes                                                           */
 /************************************************************************/
@@ -102,6 +157,51 @@ extern void vApplicationMallocFailedHook(void) {
 /************************************************************************/
 /* handlers / callbacks                                                 */
 /************************************************************************/
+ 
+// #region  handlers dos botões
+void but_azul_1_callback(void) {
+	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+	uint_32 button = 1;
+	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
+
+}
+void but_azul_2_callback(void) {
+	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+	uint_32 button = 2;
+	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
+}
+void but_azul_3_callback(void) {
+	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+	uint_32 button = 3;
+	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
+}
+void but_azul_4_callback(void) {
+	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+	uint_32 button = 4;
+	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
+}
+void but_vermelho_5_callback(void) {
+	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+	uint_32 button = 5;
+	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
+}
+void but_vermelho_6_callback(void) {
+	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+	uint_32 button = 6;
+	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
+}
+void but_vermelho_7_callback(void) {
+	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+	uint_32 button = 7;
+	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
+}
+void but_vermelho_8_callback(void) {
+	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+	uint_32 button = 8;
+	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
+}
+// #endregion
+
 
 /************************************************************************/
 /* funcoes                                                              */
@@ -112,10 +212,81 @@ void io_init(void) {
 	// Ativa PIOs
 	pmc_enable_periph_clk(LED_PIO_ID);
 	pmc_enable_periph_clk(BUT_PIO_ID);
+	pmc_enable_periph_clk(BUT_PIO_ID_BLUE_1);
+	pmc_enable_periph_clk(BUT_PIO_ID_BLUE_2);
+	pmc_enable_periph_clk(BUT_PIO_ID_BLUE_3);
+	pmc_enable_periph_clk(BUT_PIO_ID_BLUE_4);
+	pmc_enable_periph_clk(BUT_PIO_ID_RED_5);
+	pmc_enable_periph_clk(BUT_PIO_ID_RED_6);
+	pmc_enable_periph_clk(BUT_PIO_ID_RED_7);
+	pmc_enable_periph_clk(BUT_PIO_ID_RED_8);
+	
 
 	// Configura Pinos
 	pio_configure(LED_PIO, PIO_OUTPUT_0, LED_IDX_MASK, PIO_DEFAULT | PIO_DEBOUNCE);
 	pio_configure(BUT_PIO, PIO_INPUT, BUT_IDX_MASK, PIO_PULLUP);
+	pio_configure(BUT_PIO_BLUE_1, PIO_INPUT, BUT_IDX_MASK_BLUE_1, PIO_PULLUP | PIO_DEBOUNCE);
+	pio_configure(BUT_PIO_BLUE_2, PIO_INPUT, BUT_IDX_MASK_BLUE_2, PIO_PULLUP | PIO_DEBOUNCE);
+	pio_configure(BUT_PIO_BLUE_3, PIO_INPUT, BUT_IDX_MASK_BLUE_3, PIO_PULLUP | PIO_DEBOUNCE);
+	pio_configure(BUT_PIO_BLUE_4, PIO_INPUT, BUT_IDX_MASK_BLUE_4, PIO_PULLUP | PIO_DEBOUNCE);
+	pio_configure(BUT_PIO_RED_5, PIO_INPUT, BUT_IDX_MASK_RED_5, PIO_PULLUP | PIO_DEBOUNCE);
+	pio_configure(BUT_PIO_RED_6, PIO_INPUT, BUT_IDX_MASK_RED_6, PIO_PULLUP | PIO_DEBOUNCE);
+	pio_configure(BUT_PIO_RED_7, PIO_INPUT, BUT_IDX_MASK_RED_7, PIO_PULLUP | PIO_DEBOUNCE);
+	pio_configure(BUT_PIO_RED_8, PIO_INPUT, BUT_IDX_MASK_RED_8, PIO_PULLUP | PIO_DEBOUNCE);
+
+	// Configura interrupcao
+	pio_handler_set(BUT_PIO, BUT_PIO_ID, BUT_IDX_MASK, PIO_IT_FALL_EDGE, but_callback);
+	pio_handler_set(BUT_PIO_BLUE_1, BUT_PIO_ID_BLUE_1, BUT_IDX_MASK_BLUE_1, PIO_IT_FALL_EDGE, but_callback_blue_1);
+	pio_handler_set(BUT_PIO_BLUE_2, BUT_PIO_ID_BLUE_2, BUT_IDX_MASK_BLUE_2, PIO_IT_FALL_EDGE, but_callback_blue_2);
+	pio_handler_set(BUT_PIO_BLUE_3, BUT_PIO_ID_BLUE_3, BUT_IDX_MASK_BLUE_3, PIO_IT_FALL_EDGE, but_callback_blue_3);
+	pio_handler_set(BUT_PIO_BLUE_4, BUT_PIO_ID_BLUE_4, BUT_IDX_MASK_BLUE_4, PIO_IT_FALL_EDGE, but_callback_blue_4);
+	pio_handler_set(BUT_PIO_RED_5, BUT_PIO_ID_RED_5, BUT_IDX_MASK_RED_5, PIO_IT_FALL_EDGE, but_callback_red_5);
+	pio_handler_set(BUT_PIO_RED_6, BUT_PIO_ID_RED_6, BUT_IDX_MASK_RED_6, PIO_IT_FALL_EDGE, but_callback_red_6);
+	pio_handler_set(BUT_PIO_RED_7, BUT_PIO_ID_RED_7, BUT_IDX_MASK_RED_7, PIO_IT_FALL_EDGE, but_callback_red_7);
+	pio_handler_set(BUT_PIO_RED_8, BUT_PIO_ID_RED_8, BUT_IDX_MASK_RED_8, PIO_IT_FALL_EDGE, but_callback_red_8);
+
+	// Ativa interrupcao
+	pio_enable_interrupt(BUT_PIO, BUT_IDX_MASK);
+	pio_enable_interrupt(BUT_PIO_BLUE_1, BUT_IDX_MASK_BLUE_1);
+	pio_enable_interrupt(BUT_PIO_BLUE_2, BUT_IDX_MASK_BLUE_2);
+	pio_enable_interrupt(BUT_PIO_BLUE_3, BUT_IDX_MASK_BLUE_3);
+	pio_enable_interrupt(BUT_PIO_BLUE_4, BUT_IDX_MASK_BLUE_4);
+	pio_enable_interrupt(BUT_PIO_RED_5, BUT_IDX_MASK_RED_5);
+	pio_enable_interrupt(BUT_PIO_RED_6, BUT_IDX_MASK_RED_6);
+	pio_enable_interrupt(BUT_PIO_RED_7, BUT_IDX_MASK_RED_7);
+	pio_enable_interrupt(BUT_PIO_RED_8, BUT_IDX_MASK_RED_8);
+
+	pio_get_interrupt_status(BUT_PIO);
+	pio_get_interrupt_status(BUT_PIO_BLUE_1);
+	pio_get_interrupt_status(BUT_PIO_BLUE_2);
+	pio_get_interrupt_status(BUT_PIO_BLUE_3);
+	pio_get_interrupt_status(BUT_PIO_BLUE_4);
+	pio_get_interrupt_status(BUT_PIO_RED_5);
+	pio_get_interrupt_status(BUT_PIO_RED_6);
+	pio_get_interrupt_status(BUT_PIO_RED_7);
+	pio_get_interrupt_status(BUT_PIO_RED_8);
+
+	// Configura NVIC
+	NVIC_EnableIRQ(BUT_PIO_ID);
+	NVIC_EnableIRQ(BUT_PIO_ID_BLUE_1);
+	NVIC_EnableIRQ(BUT_PIO_ID_BLUE_2);
+	NVIC_EnableIRQ(BUT_PIO_ID_BLUE_3);
+	NVIC_EnableIRQ(BUT_PIO_ID_BLUE_4);
+	NVIC_EnableIRQ(BUT_PIO_ID_RED_5);
+	NVIC_EnableIRQ(BUT_PIO_ID_RED_6);
+	NVIC_EnableIRQ(BUT_PIO_ID_RED_7);
+	NVIC_EnableIRQ(BUT_PIO_ID_RED_8);
+	NVIC_SetPriority(BUT_PIO_ID, 4);
+	NVIC_SetPriority(BUT_PIO_ID_BLUE_1, 4);
+	NVIC_SetPriority(BUT_PIO_ID_BLUE_2, 4);
+	NVIC_SetPriority(BUT_PIO_ID_BLUE_3, 4);
+	NVIC_SetPriority(BUT_PIO_ID_BLUE_4, 4);
+	NVIC_SetPriority(BUT_PIO_ID_RED_5, 4);
+	NVIC_SetPriority(BUT_PIO_ID_RED_6, 4);
+	NVIC_SetPriority(BUT_PIO_ID_RED_7, 4);
+	NVIC_SetPriority(BUT_PIO_ID_RED_8, 4);
+
+
 }
 
 static void configure_console(void) {
@@ -201,7 +372,7 @@ int hc05_init(void) {
 	vTaskDelay( 500 / portTICK_PERIOD_MS);
 	usart_send_command(USART_COM, buffer_rx, 1000, "AT", 100);
 	vTaskDelay( 500 / portTICK_PERIOD_MS);
-	usart_send_command(USART_COM, buffer_rx, 1000, "AT+NAMEJames", 100);
+	usart_send_command(USART_COM, buffer_rx, 1000, "AT+NAMECbrutius", 100);
 	vTaskDelay( 500 / portTICK_PERIOD_MS);
 	usart_send_command(USART_COM, buffer_rx, 1000, "AT", 100);
 	vTaskDelay( 500 / portTICK_PERIOD_MS);
@@ -228,7 +399,7 @@ void task_bluetooth(void) {
 	// Task não deve retornar.
 	while(1) {
 		// atualiza valor do botão
-		if(pio_get(BUT_PIO, PIO_INPUT, BUT_IDX_MASK) == 0) {
+		if(pio_get(BUT_PIO_BLUE_1, PIO_INPUT, BUT_IDX_MASK_BLUE_1) == 1) {
 			button1 = '1';
 		} else {
 			button1 = '0';
@@ -250,7 +421,16 @@ void task_bluetooth(void) {
 		vTaskDelay(1 / portTICK_PERIOD_MS);
 	}
 }
-
+void task_button_handler(void) {
+	printf("Task Button Handler started \n");
+	
+	// Task não deve retornar.
+	while(1) {
+		// le a fila e printa o valor
+		uint32_t button;
+		xQueueReceive(button_queue, &button, portMAX_DELAY);
+		printf("Button %d pressed", button);
+}
 /************************************************************************/
 /* main                                                                 */
 /************************************************************************/
@@ -262,8 +442,16 @@ int main(void) {
 
 	configure_console();
 
+	xQueueButton = xQueueCreate(1, sizeof(uint32_t));
+	if (xQueueButton == NULL) {
+		printf("Erro ao criar fila de botões");
+	}
+
 	/* Create task to make led blink */
 	xTaskCreate(task_bluetooth, "BLT", TASK_BLUETOOTH_STACK_SIZE, NULL,	TASK_BLUETOOTH_STACK_PRIORITY, NULL);
+
+	/* Create task to handle button */
+	xTaskCreate(task_button_handler, "BTN", TASK_BUTTON_HANDLER_STACK_SIZE, NULL, TASK_BUTTON_HANDLER_STACK_PRIORITY, NULL);
 
 	/* Start the scheduler. */
 	vTaskStartScheduler();
