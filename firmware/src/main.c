@@ -31,6 +31,29 @@
 #define AFEC_POT_ID ID_AFEC0
 #define AFEC_POT_CHANNEL 0 // Canal do pino PD30
 
+
+// JOYSTICK
+// Primeira entrada
+#define JOY1_PIO PIOD
+#define JOY1_PIO_ID ID_PIOD
+#define JOY1_IDX 22
+#define JOY1_IDX_MASK (1 << JOY1_IDX)
+
+#define JOY2_PIO PIOB
+#define JOY2_PIO_ID ID_PIOB
+#define JOY2_IDX 3
+#define JOY2_IDX_MASK (1 << JOY2_IDX)
+
+#define JOY3_PIO PIOA
+#define JOY3_PIO_ID ID_PIOA
+#define JOY3_IDX 5
+#define JOY3_IDX_MASK (1 << JOY3_IDX)
+
+#define JOY4_PIO PIOD
+#define JOY4_PIO_ID ID_PIOD
+#define JOY4_IDX 12
+#define JOY4_IDX_MASK (1 << JOY4_IDX)
+
 // #endregion
 
 // usart (bluetooth ou serial)
@@ -61,6 +84,11 @@
 // task Button Handler
 #define TASK_BUTTON_HANDLER_STACK_SIZE (4096 / sizeof(portSTACK_TYPE))
 #define TASK_BUTTON_HANDLER_STACK_PRIORITY (tskIDLE_PRIORITY)
+
+// task Joystick Handler
+#define TASK_JOY_STACK_SIZE (4096 / sizeof(portSTACK_TYPE))
+#define TASK_JOY_STACK_PRIORITY (tskIDLE_PRIORITY)
+
 /************************************************************************/
 /* recursos RTOS                                                        */
 /************************************************************************/
@@ -70,6 +98,8 @@ TimerHandle_t xTimer;
 QueueHandle_t xQueueVOL;
 // Queue dos botoes
 QueueHandle_t xQueueButton;
+// Queue do Joystick
+QueueHandle_t xQueueJoy;
 
 /************************************************************************/
 /* prototypes                                                           */
@@ -184,6 +214,38 @@ void but_callback_red_8(void)
 	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
 }
 
+// handler do joystick
+
+void joy1_callback(void)
+{
+	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+	char direcao = 'joy1';
+	xQueueSendFromISR(xQueueJoy, &direcao, &xHigherPriorityTaskWoken);
+}
+
+void joy2_callback(void)
+{
+	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+	char direcao = 'joy2';
+	xQueueSendFromISR(xQueueJoy, &direcao, &xHigherPriorityTaskWoken);
+}
+
+void joy3_callback(void)
+{
+	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+	char direcao = 'joy3';
+	xQueueSendFromISR(xQueueJoy, &direcao, &xHigherPriorityTaskWoken);
+}
+
+void joy4_callback(void)
+{
+	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+	char direcao = 'joy4';
+	xQueueSendFromISR(xQueueJoy, &direcao, &xHigherPriorityTaskWoken);
+}
+
+
+// handler do volume
 static void AFEC_pot_callback(void) {
 	uint leitura;
 	leitura = afec_channel_get_value(AFEC_POT, AFEC_POT_CHANNEL);
@@ -211,11 +273,7 @@ void io_init(void)
 	pmc_enable_periph_clk(BUT_PIO_ID_RED_6);
 	pmc_enable_periph_clk(BUT_PIO_ID_RED_7);
 	pmc_enable_periph_clk(BUT_PIO_ID_RED_8);
-}
-
-void but_init(void)
-{
-
+	
 	// Configura Pinos
 
 	pio_configure(BUT_PIO_BLUE_1, PIO_INPUT, BUT_IDX_MASK_BLUE_1, PIO_PULLUP | PIO_DEBOUNCE);
@@ -277,6 +335,47 @@ void but_init(void)
 	NVIC_SetPriority(BUT_PIO_ID_RED_6, 4);
 	NVIC_SetPriority(BUT_PIO_ID_RED_7, 4);
 	NVIC_SetPriority(BUT_PIO_ID_RED_8, 4);
+	
+	
+}
+
+void joy_init(void)
+{
+
+	// Configura Pinos
+
+	pio_configure(JOY1_PIO, PIO_INPUT, JOY1_IDX_MASK, PIO_PULLUP | PIO_DEBOUNCE);
+	pio_configure(JOY2_PIO, PIO_INPUT, JOY2_IDX_MASK, PIO_PULLUP | PIO_DEBOUNCE);
+	pio_configure(JOY3_PIO, PIO_INPUT, JOY3_IDX_MASK, PIO_PULLUP | PIO_DEBOUNCE);
+	pio_configure(JOY4_PIO, PIO_INPUT, JOY4_IDX_MASK, PIO_PULLUP | PIO_DEBOUNCE);
+
+	pio_handler_set(JOY1_PIO, JOY1_PIO_ID, JOY1_IDX_MASK, PIO_IT_FALL_EDGE, joy1_callback);
+	pio_handler_set(JOY2_PIO, JOY2_PIO_ID, JOY2_IDX_MASK, PIO_IT_FALL_EDGE, joy2_callback);
+	pio_handler_set(JOY3_PIO, JOY3_PIO_ID, JOY3_IDX_MASK, PIO_IT_FALL_EDGE, joy3_callback);
+	pio_handler_set(JOY4_PIO, JOY4_PIO_ID, JOY4_IDX_MASK, PIO_IT_FALL_EDGE, joy4_callback);
+
+	// Ativa interrupcao
+	pio_enable_interrupt(JOY1_PIO, JOY1_IDX_MASK);
+	pio_enable_interrupt(JOY2_PIO, JOY2_IDX_MASK);
+	pio_enable_interrupt(JOY3_PIO, JOY3_IDX_MASK);
+	pio_enable_interrupt(JOY4_PIO, JOY4_IDX_MASK);
+
+	pio_get_interrupt_status(JOY1_PIO);
+	pio_get_interrupt_status(JOY2_PIO);
+	pio_get_interrupt_status(JOY3_PIO);
+	pio_get_interrupt_status(JOY4_PIO);
+
+	// Configura NVIC
+
+	NVIC_EnableIRQ(JOY1_PIO_ID);
+	NVIC_EnableIRQ(JOY2_PIO_ID);
+	NVIC_EnableIRQ(JOY3_PIO_ID);
+	NVIC_EnableIRQ(JOY4_PIO_ID);
+
+	NVIC_SetPriority(JOY1_PIO_ID, 4);
+	NVIC_SetPriority(JOY2_PIO_ID, 4);
+	NVIC_SetPriority(JOY3_PIO_ID, 4);
+	NVIC_SetPriority(JOY4_PIO_ID, 4);
 }
 
 static void config_AFEC_pot(Afec *afec, uint32_t afec_id, uint32_t afec_channel,
@@ -439,7 +538,7 @@ void task_bluetooth(void)
 
 	// configura LEDs e Botões
 	io_init();
-	but_init();
+
 
 	char eof = 'X';
 
@@ -447,7 +546,9 @@ void task_bluetooth(void)
 	while (1)
 	{
 		char button = '0';
+		char direcao = 'joy';
 		xQueueReceive(xQueueButton, &button, portMAX_DELAY);
+		xQueueReceive(xQueueJoy, &direcao, portMAX_DELAY);
 		// envia status botão
 		while (!usart_is_tx_ready(USART_COM))
 		{
@@ -468,6 +569,19 @@ void task_bluetooth(void)
 void task_button_handler(void)
 {
 	printf("Task Button Handler started \n");
+
+	// Task não deve retornar.
+	while (1)
+	{
+		// le a fila e printa o valor
+
+	}
+}
+
+void task_joy(void)
+{
+	printf("Task Joystick started \n");
+	joy_init();
 
 	// Task não deve retornar.
 	while (1)
@@ -532,6 +646,12 @@ int main(void)
 	{
 		printf("Erro ao criar fila de botões");
 	}
+
+	xQueueJoy = xQueueCreate(1, sizeof(char));
+	if (xQueueJoy == NULL)
+	{
+		printf("Erro ao criar fila de botões");
+	}
 	
 	xQueueVOL = xQueueCreate(100, sizeof(uint));
 	if (xQueueVOL == NULL) {
@@ -540,6 +660,9 @@ int main(void)
 
 	/* Create task to make led blink */
 	xTaskCreate(task_bluetooth, "BLT", TASK_BLUETOOTH_STACK_SIZE, NULL, TASK_BLUETOOTH_STACK_PRIORITY, NULL);
+
+	/* Create task joystick */
+	xTaskCreate(task_joy, "JOY", TASK_JOY_STACK_SIZE, NULL, TASK_JOY_STACK_PRIORITY, NULL);
 
 	/* Create task to handle button */
 	xTaskCreate(task_button_handler, "BTN", TASK_BUTTON_HANDLER_STACK_SIZE, NULL, TASK_BUTTON_HANDLER_STACK_PRIORITY, NULL);
