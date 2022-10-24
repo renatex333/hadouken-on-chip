@@ -20,12 +20,6 @@
 #define LED_IDX 8
 #define LED_IDX_MASK (1 << LED_IDX)
 
-// Botão
-#define BUT_PIO PIOA
-#define BUT_PIO_ID ID_PIOA
-#define BUT_IDX 11
-#define BUT_IDX_MASK (1 << BUT_IDX)
-
 // Entrada da leitura do potenciometro que vai alterar o volume
 #define AFEC_POT AFEC0
 #define AFEC_POT_ID ID_AFEC0
@@ -39,9 +33,9 @@
 #define JOY1_IDX 22
 #define JOY1_IDX_MASK (1 << JOY1_IDX)
 
-#define JOY2_PIO PIOB
-#define JOY2_PIO_ID ID_PIOB
-#define JOY2_IDX 3
+#define JOY2_PIO PIOA
+#define JOY2_PIO_ID ID_PIOA
+#define JOY2_IDX 24
 #define JOY2_IDX_MASK (1 << JOY2_IDX)
 
 #define JOY3_PIO PIOA
@@ -94,10 +88,13 @@
 /************************************************************************/
 
 TimerHandle_t xTimer;
+
 /** Queue for msg log send data */
 QueueHandle_t xQueueVOL;
+
 // Queue dos botoes
 QueueHandle_t xQueueButton;
+
 // Queue do Joystick
 QueueHandle_t xQueueJoy;
 
@@ -113,6 +110,7 @@ extern void vApplicationMallocFailedHook(void);
 extern void xPortSysTickHandler(void);
 static void config_AFEC_pot(Afec *afec, uint32_t afec_id, uint32_t afec_channel,
 afec_callback_t callback);
+void envia_dado(char comando);
 
 /************************************************************************/
 /* constants                                                            */
@@ -219,28 +217,28 @@ void but_callback_red_8(void)
 void joy1_callback(void)
 {
 	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
-	char direcao = 'joy1';
+	char direcao = 'd';
 	xQueueSendFromISR(xQueueJoy, &direcao, &xHigherPriorityTaskWoken);
 }
 
 void joy2_callback(void)
 {
 	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
-	char direcao = 'joy2';
+	char direcao = 's';
 	xQueueSendFromISR(xQueueJoy, &direcao, &xHigherPriorityTaskWoken);
 }
 
 void joy3_callback(void)
 {
 	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
-	char direcao = 'joy3';
+	char direcao = 'a';
 	xQueueSendFromISR(xQueueJoy, &direcao, &xHigherPriorityTaskWoken);
 }
 
 void joy4_callback(void)
 {
 	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
-	char direcao = 'joy4';
+	char direcao = 'w';
 	xQueueSendFromISR(xQueueJoy, &direcao, &xHigherPriorityTaskWoken);
 }
 
@@ -265,6 +263,8 @@ void io_init(void)
 	// Ativa PIOs
 	pmc_enable_periph_clk(LED_PIO_ID);
 
+
+
 	pmc_enable_periph_clk(BUT_PIO_ID_BLUE_1);
 	pmc_enable_periph_clk(BUT_PIO_ID_BLUE_2);
 	pmc_enable_periph_clk(BUT_PIO_ID_BLUE_3);
@@ -275,7 +275,15 @@ void io_init(void)
 	pmc_enable_periph_clk(BUT_PIO_ID_RED_8);
 	
 	// Configura Pinos
-
+	pio_set_debounce_filter(BUT_PIO_BLUE_1, BUT_IDX_MASK_BLUE_1, 120);
+	pio_set_debounce_filter(BUT_PIO_BLUE_1, BUT_IDX_MASK_BLUE_1, 120);
+	pio_set_debounce_filter(BUT_PIO_BLUE_1, BUT_IDX_MASK_BLUE_1, 120);
+	pio_set_debounce_filter(BUT_PIO_BLUE_1, BUT_IDX_MASK_BLUE_1, 120);
+	pio_set_debounce_filter(BUT_PIO_RED_8, BUT_IDX_MASK_RED_5, 120);
+	pio_set_debounce_filter(BUT_PIO_RED_8, BUT_IDX_MASK_RED_6, 120);
+	pio_set_debounce_filter(BUT_PIO_RED_8, BUT_IDX_MASK_RED_7, 120);
+	pio_set_debounce_filter(BUT_PIO_RED_8, BUT_IDX_MASK_RED_8, 120);
+		
 	pio_configure(BUT_PIO_BLUE_1, PIO_INPUT, BUT_IDX_MASK_BLUE_1, PIO_PULLUP | PIO_DEBOUNCE);
 	pio_configure(BUT_PIO_BLUE_2, PIO_INPUT, BUT_IDX_MASK_BLUE_2, PIO_PULLUP | PIO_DEBOUNCE);
 	pio_configure(BUT_PIO_BLUE_3, PIO_INPUT, BUT_IDX_MASK_BLUE_3, PIO_PULLUP | PIO_DEBOUNCE);
@@ -343,7 +351,11 @@ void joy_init(void)
 {
 
 	// Configura Pinos
-
+	pio_set_debounce_filter(JOY1_PIO, JOY1_IDX_MASK, 120);
+	pio_set_debounce_filter(JOY2_PIO, JOY2_IDX_MASK, 120);
+	pio_set_debounce_filter(JOY3_PIO, JOY3_IDX_MASK, 120);
+	pio_set_debounce_filter(JOY4_PIO, JOY4_IDX_MASK, 120);
+	
 	pio_configure(JOY1_PIO, PIO_INPUT, JOY1_IDX_MASK, PIO_PULLUP | PIO_DEBOUNCE);
 	pio_configure(JOY2_PIO, PIO_INPUT, JOY2_IDX_MASK, PIO_PULLUP | PIO_DEBOUNCE);
 	pio_configure(JOY3_PIO, PIO_INPUT, JOY3_IDX_MASK, PIO_PULLUP | PIO_DEBOUNCE);
@@ -524,6 +536,27 @@ int hc05_init(void)
 	usart_send_command(USART_COM, buffer_rx, 1000, "AT+PIN1234", 100);
 }
 
+void envia_dado(char comando){
+	
+	char eof = 'X';
+	
+	// envia comando
+	while (!usart_is_tx_ready(USART_COM))
+	{
+		vTaskDelay(10 / portTICK_PERIOD_MS);
+	}
+	usart_write(USART_COM, comando);
+
+	while (!usart_is_tx_ready(USART_COM))
+	{
+		vTaskDelay(10 / portTICK_PERIOD_MS);
+	}
+	usart_write(USART_COM, eof);
+
+	// dorme por 500 ms
+	vTaskDelay(1 / portTICK_PERIOD_MS);
+}
+
 /************************************************************************/
 /* TASKS                                                                */
 /************************************************************************/
@@ -538,57 +571,56 @@ void task_bluetooth(void)
 
 	// configura LEDs e Botões
 	io_init();
-
-
-	char eof = 'X';
-
+	
 	// Task não deve retornar.
-	while (1)
-	{
-		char button = '0';
-		char direcao = 'joy';
-		xQueueReceive(xQueueButton, &button, portMAX_DELAY);
-		xQueueReceive(xQueueJoy, &direcao, portMAX_DELAY);
-		// envia status botão
-		while (!usart_is_tx_ready(USART_COM))
-		{
-			vTaskDelay(10 / portTICK_PERIOD_MS);
-		}
-		usart_write(USART_COM, button);
-
-		while (!usart_is_tx_ready(USART_COM))
-		{
-			vTaskDelay(10 / portTICK_PERIOD_MS);
-		}
-		usart_write(USART_COM, eof);
-
-		// dorme por 500 ms
-		vTaskDelay(1 / portTICK_PERIOD_MS);
+	while (1){
 	}
 }
 void task_button_handler(void)
 {
-	printf("Task Button Handler started \n");
+	char botao = '0';
 
-	// Task não deve retornar.
-	while (1)
-	{
-		// le a fila e printa o valor
+	/* tarefas de um RTOS não devem retornar */
+	for (;;) {
+	/* verifica se chegou algum dado na queue, e espera por 0 ticks */
+	if (xQueueReceive(xQueueButton, &botao, (TickType_t) 0)) {
+		/* chegou novo valor, atualiza delay ! */
+		/* aqui eu poderia verificar se msg faz sentido (se esta no range certo)
+		*/
+		/* converte ms -> ticks */
+		printf("botao: %c \n", botao);
+		envia_dado(botao);
+	}
+	//else{
+		//printf("botao: 0 \n",);
+		//envia_dado('0');
+	//}
 
+	/* suspende por delayMs */
+	vTaskDelay(100);
 	}
 }
 
-void task_joy(void)
-{
-	printf("Task Joystick started \n");
-	joy_init();
+static void task_joy(void *pvParameters) {
+  joy_init();
 
-	// Task não deve retornar.
-	while (1)
-	{
-		// le a fila e printa o valor
+  char direcao = 'joy';
 
-	}
+  /* tarefas de um RTOS não devem retornar */
+  for (;;) {
+    /* verifica se chegou algum dado na queue, e espera por 0 ticks */
+    if (xQueueReceive(xQueueJoy, &direcao, (TickType_t) 0)) {
+      /* chegou novo valor, atualiza delay ! */
+      /* aqui eu poderia verificar se msg faz sentido (se esta no range certo)
+       */
+      /* converte ms -> ticks */
+      printf("direcao: %c \n", direcao);
+	  envia_dado(direcao);
+    }
+
+    /* suspende por delayMs */
+    vTaskDelay(100);
+  }
 }
 
 void vTimerCallback(TimerHandle_t xTimer) {
@@ -623,7 +655,7 @@ static void task_vol(void *pvParameters) {
 
   for(;;) {
     if (xQueueReceive(xQueueVOL, &(leitura), 2000)) {
-      printf("Leit: %d \n", leitura);
+      //printf("Leit: %d \n", leitura);
     } else {
       printf("Nao chegou um novo dado em 1 segundo \n");
     }
@@ -647,7 +679,7 @@ int main(void)
 		printf("Erro ao criar fila de botões");
 	}
 
-	xQueueJoy = xQueueCreate(1, sizeof(char));
+	xQueueJoy = xQueueCreate(4, sizeof(char));
 	if (xQueueJoy == NULL)
 	{
 		printf("Erro ao criar fila de botões");
@@ -658,14 +690,29 @@ int main(void)
 		printf("falha em criar a queue xQueueVOL \n");
 	}
 
-	/* Create task to make led blink */
-	xTaskCreate(task_bluetooth, "BLT", TASK_BLUETOOTH_STACK_SIZE, NULL, TASK_BLUETOOTH_STACK_PRIORITY, NULL);
+	/* Create task to make led blink */	
+	if (xTaskCreate(task_bluetooth, "BLT",TASK_BLUETOOTH_STACK_SIZE, NULL,
+	TASK_BLUETOOTH_STACK_PRIORITY, NULL) != pdPASS) {
+		printf("Failed to create Joy task\r\n");
+		} else {
+		printf("task joy \r\n");
+	}
 
-	/* Create task joystick */
-	xTaskCreate(task_joy, "JOY", TASK_JOY_STACK_SIZE, NULL, TASK_JOY_STACK_PRIORITY, NULL);
+	/* Create task joystick */	
+	if (xTaskCreate(task_joy, "JOY",TASK_JOY_STACK_SIZE, NULL,
+	TASK_JOY_STACK_PRIORITY, NULL) != pdPASS) {
+		printf("Failed to create Joy task\r\n");
+		} else {
+		printf("task joy \r\n");
+	}
 
 	/* Create task to handle button */
-	xTaskCreate(task_button_handler, "BTN", TASK_BUTTON_HANDLER_STACK_SIZE, NULL, TASK_BUTTON_HANDLER_STACK_PRIORITY, NULL);
+	if (xTaskCreate(task_button_handler, "BUT", TASK_BUTTON_HANDLER_STACK_SIZE, NULL,
+	 TASK_BUTTON_HANDLER_STACK_PRIORITY, NULL) != pdPASS) {
+		printf("Failed to create BUT task\r\n");
+		} else {
+		printf("task but \r\n");
+	}
 	
 	if (xTaskCreate(task_vol, "VOL", TASK_VOL_STACK_SIZE, NULL,
 	TASK_VOL_STACK_PRIORITY, NULL) != pdPASS) {

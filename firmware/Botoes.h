@@ -1,6 +1,12 @@
 #ifndef BOTOES_H
 #define BOTOES_H
 
+// Botão
+#define BUT_PIO PIOA
+#define BUT_PIO_ID ID_PIOA
+#define BUT_IDX 11
+#define BUT_IDX_MASK (1 << BUT_IDX)
+
 // Botão Azul 1 - PC31
 #define BUT_PIO_BLUE_1 PIOC
 #define BUT_PIO_ID_BLUE_1 ID_PIOC
@@ -42,6 +48,7 @@
 #define BUT_PIO_ID_RED_8 ID_PIOD
 #define BUT_IDX_RED_8 11
 #define BUT_IDX_MASK_RED_8 (1 << BUT_IDX_RED_8)
+
 
 
 #endif

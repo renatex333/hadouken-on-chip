@@ -69,5 +69,7 @@ if __name__ == '__main__':
     else:
         controller = SerialControllerInterface(port=args.serial_port, baudrate=args.baudrate)
 
+    controller.handshake();  
+    
     while True:
         controller.update()
