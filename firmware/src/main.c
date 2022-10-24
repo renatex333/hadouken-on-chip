@@ -8,6 +8,7 @@
 #include <asf.h>
 #include "conf_board.h"
 #include <string.h>
+#include "Botoes.h"
 
 /************************************************************************/
 /* defines                                                              */
@@ -19,55 +20,16 @@
 #define LED_IDX 8
 #define LED_IDX_MASK (1 << LED_IDX)
 
-// #region
-
 // Botão
 #define BUT_PIO PIOA
 #define BUT_PIO_ID ID_PIOA
 #define BUT_IDX 11
 #define BUT_IDX_MASK (1 << BUT_IDX)
 
-// Botão Azul 1 - PC31
-#define BUT_PIO_BLUE_1 PIOC
-#define BUT_PIO_ID_BLUE_1 ID_PIOC
-#define BUT_IDX_BLUE_1 31
-#define BUT_IDX_MASK_BLUE_1 (1 << BUT_IDX_BLUE_1)
-// Botão Azul 2 - PA19
-#define BUT_PIO_BLUE_2 PIOA
-#define BUT_PIO_ID_BLUE_2 ID_PIOA
-#define BUT_IDX_BLUE_2 19
-#define BUT_IDX_MASK_BLUE_2 (1 << BUT_IDX_BLUE_2)
-// Botão Azul 3 - PB3
-#define BUT_PIO_BLUE_3 PIOB
-#define BUT_PIO_ID_BLUE_3 ID_PIOB
-#define BUT_IDX_BLUE_3 3
-#define BUT_IDX_MASK_BLUE_3 (1 << BUT_IDX_BLUE_3)
-// Botão Azul 4 - PB2
-#define BUT_PIO_BLUE_4 PIOB
-#define BUT_PIO_ID_BLUE_4 ID_PIOB
-#define BUT_IDX_BLUE_4 2
-#define BUT_IDX_MASK_BLUE_4 (1 << BUT_IDX_BLUE_4)
-
-// Botão Vermelho 5 - PD30
-#define BUT_PIO_RED_5 PIOD
-#define BUT_PIO_ID_RED_5 ID_PIOD
-#define BUT_IDX_RED_5 30
-#define BUT_IDX_MASK_RED_5 (1 << BUT_IDX_RED_5)
-// Botão Vermelho 6 - PC13
-#define BUT_PIO_RED_6 PIOC
-#define BUT_PIO_ID_RED_6 ID_PIOC
-#define BUT_IDX_RED_6 13
-#define BUT_IDX_MASK_RED_6 (1 << BUT_IDX_RED_6)
-// Botão Vermelho 7 - PA6
-#define BUT_PIO_RED_7 PIOA
-#define BUT_PIO_ID_RED_7 ID_PIOA
-#define BUT_IDX_RED_7 6
-#define BUT_IDX_MASK_RED_7 (1 << BUT_IDX_RED_7)
-// Botão Vermelho 8 - PD11
-#define BUT_PIO_RED_8 PIOD
-#define BUT_PIO_ID_RED_8 ID_PIOD
-#define BUT_IDX_RED_8 11
-#define BUT_IDX_MASK_RED_8 (1 << BUT_IDX_RED_8)
+// Entrada da leitura do potenciometro que vai alterar o volume
+#define AFEC_POT AFEC0
+#define AFEC_POT_ID ID_AFEC0
+#define AFEC_POT_CHANNEL 0 // Canal do pino PD30
 
 // #endregion
 
@@ -92,12 +54,23 @@
 #define TASK_BLUETOOTH_STACK_SIZE (4096 / sizeof(portSTACK_TYPE))
 #define TASK_BLUETOOTH_STACK_PRIORITY (tskIDLE_PRIORITY)
 
+// task Volume Handler
+#define TASK_VOL_STACK_SIZE (1024 * 10 / sizeof(portSTACK_TYPE))
+#define TASK_VOL_STACK_PRIORITY (tskIDLE_PRIORITY)
+
 // task Button Handler
 #define TASK_BUTTON_HANDLER_STACK_SIZE (4096 / sizeof(portSTACK_TYPE))
 #define TASK_BUTTON_HANDLER_STACK_PRIORITY (tskIDLE_PRIORITY)
+/************************************************************************/
+/* recursos RTOS                                                        */
+/************************************************************************/
 
+TimerHandle_t xTimer;
+/** Queue for msg log send data */
+QueueHandle_t xQueueVOL;
 // Queue dos botoes
 QueueHandle_t xQueueButton;
+
 /************************************************************************/
 /* prototypes                                                           */
 /************************************************************************/
@@ -108,6 +81,8 @@ extern void vApplicationIdleHook(void);
 extern void vApplicationTickHook(void);
 extern void vApplicationMallocFailedHook(void);
 extern void xPortSysTickHandler(void);
+static void config_AFEC_pot(Afec *afec, uint32_t afec_id, uint32_t afec_channel,
+afec_callback_t callback);
 
 /************************************************************************/
 /* constants                                                            */
@@ -208,6 +183,14 @@ void but_callback_red_8(void)
 	char button = '8';
 	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
 }
+
+static void AFEC_pot_callback(void) {
+	uint leitura;
+	leitura = afec_channel_get_value(AFEC_POT, AFEC_POT_CHANNEL);
+	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+	xQueueSendFromISR(xQueueVOL, &leitura, &xHigherPriorityTaskWoken);
+}
+
 // #endregion
 
 /************************************************************************/
@@ -228,6 +211,10 @@ void io_init(void)
 	pmc_enable_periph_clk(BUT_PIO_ID_RED_6);
 	pmc_enable_periph_clk(BUT_PIO_ID_RED_7);
 	pmc_enable_periph_clk(BUT_PIO_ID_RED_8);
+}
+
+void but_init(void)
+{
 
 	// Configura Pinos
 
@@ -291,6 +278,52 @@ void io_init(void)
 	NVIC_SetPriority(BUT_PIO_ID_RED_7, 4);
 	NVIC_SetPriority(BUT_PIO_ID_RED_8, 4);
 }
+
+static void config_AFEC_pot(Afec *afec, uint32_t afec_id, uint32_t afec_channel,
+                            afec_callback_t callback) {
+  /*************************************
+   * Ativa e configura AFEC
+   *************************************/
+  /* Ativa AFEC - 0 */
+  afec_enable(afec);
+
+  /* struct de configuracao do AFEC */
+  struct afec_config afec_cfg;
+
+  /* Carrega parametros padrao */
+  afec_get_config_defaults(&afec_cfg);
+
+  /* Configura AFEC */
+  afec_init(afec, &afec_cfg);
+
+  /* Configura trigger por software */
+  afec_set_trigger(afec, AFEC_TRIG_SW);
+
+  /*** Configuracao específica do canal AFEC ***/
+  struct afec_ch_config afec_ch_cfg;
+  afec_ch_get_config_defaults(&afec_ch_cfg);
+  afec_ch_cfg.gain = AFEC_GAINVALUE_0;
+  afec_ch_set_config(afec, afec_channel, &afec_ch_cfg);
+
+  /*
+  * Calibracao:
+  * Because the internal ADC offset is 0x200, it should cancel it and shift
+  down to 0.
+  */
+  afec_channel_set_analog_offset(afec, afec_channel, 0x200);
+
+  /***  Configura sensor de temperatura ***/
+  struct afec_temp_sensor_config afec_temp_sensor_cfg;
+
+  afec_temp_sensor_get_config_defaults(&afec_temp_sensor_cfg);
+  afec_temp_sensor_set_config(afec, &afec_temp_sensor_cfg);
+
+  /* configura IRQ */
+  afec_set_callback(afec, afec_channel, callback, 1);
+  NVIC_SetPriority(afec_id, 4);
+  NVIC_EnableIRQ(afec_id);
+}
+
 
 static void configure_console(void)
 {
@@ -406,6 +439,7 @@ void task_bluetooth(void)
 
 	// configura LEDs e Botões
 	io_init();
+	but_init();
 
 	char eof = 'X';
 
@@ -442,37 +476,86 @@ void task_button_handler(void)
 
 	}
 }
-	/************************************************************************/
-	/* main                                                                 */
-	/************************************************************************/
 
-	int main(void)
+void vTimerCallback(TimerHandle_t xTimer) {
+	/* Selecina canal e inicializa conversão */
+	afec_channel_enable(AFEC_POT, AFEC_POT_CHANNEL);
+	afec_start_software_conversion(AFEC_POT);
+}
+
+static void task_vol(void *pvParameters) {
+	// configura ADC e TC para controlar a leitura
+	config_AFEC_pot(AFEC_POT, AFEC_POT_ID, AFEC_POT_CHANNEL, AFEC_pot_callback);
+	
+  xTimer = xTimerCreate(/* Just a text name, not used by the RTOS
+                        kernel. */
+                        "Timer",
+                        /* The timer period in ticks, must be
+                        greater than 0. */
+                        1000,
+                        /* The timers will auto-reload themselves
+                        when they expire. */
+                        pdTRUE,
+                        /* The ID is used to store a count of the
+                        number of times the timer has expired, which
+                        is initialised to 0. */
+                        (void *)0,
+                        /* Timer callback */
+                        vTimerCallback);
+  xTimerStart(xTimer, 0);
+
+  // variável para recever dados da fila
+  uint leitura;
+
+  for(;;) {
+    if (xQueueReceive(xQueueVOL, &(leitura), 2000)) {
+      printf("Leit: %d \n", leitura);
+    } else {
+      printf("Nao chegou um novo dado em 1 segundo \n");
+    }
+  }
+}
+/************************************************************************/
+/* main                                                                 */
+/************************************************************************/
+
+int main(void)
+{
+	/* Initialize the SAM system */
+	sysclk_init();
+	board_init();
+
+	configure_console();
+
+	xQueueButton = xQueueCreate(1, sizeof(char));
+	if (xQueueButton == NULL)
 	{
-		/* Initialize the SAM system */
-		sysclk_init();
-		board_init();
-
-		configure_console();
-
-		xQueueButton = xQueueCreate(1, sizeof(char));
-		if (xQueueButton == NULL)
-		{
-			printf("Erro ao criar fila de botões");
-		}
-
-		/* Create task to make led blink */
-		xTaskCreate(task_bluetooth, "BLT", TASK_BLUETOOTH_STACK_SIZE, NULL, TASK_BLUETOOTH_STACK_PRIORITY, NULL);
-
-		/* Create task to handle button */
-		xTaskCreate(task_button_handler, "BTN", TASK_BUTTON_HANDLER_STACK_SIZE, NULL, TASK_BUTTON_HANDLER_STACK_PRIORITY, NULL);
-
-		/* Start the scheduler. */
-		vTaskStartScheduler();
-
-		while (1)
-		{
-		}
-
-		/* Will only get here if there was insufficient memory to create the idle task. */
-		return 0;
+		printf("Erro ao criar fila de botões");
 	}
+	
+	xQueueVOL = xQueueCreate(100, sizeof(uint));
+	if (xQueueVOL == NULL) {
+		printf("falha em criar a queue xQueueVOL \n");
+	}
+
+	/* Create task to make led blink */
+	xTaskCreate(task_bluetooth, "BLT", TASK_BLUETOOTH_STACK_SIZE, NULL, TASK_BLUETOOTH_STACK_PRIORITY, NULL);
+
+	/* Create task to handle button */
+	xTaskCreate(task_button_handler, "BTN", TASK_BUTTON_HANDLER_STACK_SIZE, NULL, TASK_BUTTON_HANDLER_STACK_PRIORITY, NULL);
+	
+	if (xTaskCreate(task_vol, "VOL", TASK_VOL_STACK_SIZE, NULL,
+	TASK_VOL_STACK_PRIORITY, NULL) != pdPASS) {
+		printf("Failed to create test VOL task\r\n");
+	}
+
+	/* Start the scheduler. */
+	vTaskStartScheduler();
+
+	while (1)
+	{
+	}
+
+	/* Will only get here if there was insufficient memory to create the idle task. */
+	return 0;
+}
