@@ -1313,6 +1313,9 @@
     <Compile Include="src\ASF\thirdparty\freertos\freertos-8.2.3\Source\timers.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\Botoes.h">
+      <SubType>compile</SubType>
+    </Compile>
     <None Include="src\config\conf_sleepmgr.h">
       <SubType>compile</SubType>
     </None>
