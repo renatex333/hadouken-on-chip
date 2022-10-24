@@ -8,22 +8,57 @@
 #include <asf.h>
 #include "conf_board.h"
 #include <string.h>
-#include "Botoes.h"
 
 /************************************************************************/
 /* defines                                                              */
 /************************************************************************/
 
-// LEDs
-#define LED_PIO PIOC
-#define LED_PIO_ID ID_PIOC
-#define LED_IDX 8
-#define LED_IDX_MASK (1 << LED_IDX)
-
 // Entrada da leitura do potenciometro que vai alterar o volume
 #define AFEC_POT AFEC0
 #define AFEC_POT_ID ID_AFEC0
 #define AFEC_POT_CHANNEL 0 // Canal do pino PD30
+
+// Botão Azul 1 - PC31
+#define BUT_PIO_BLUE_1 PIOC
+#define BUT_PIO_ID_BLUE_1 ID_PIOC
+#define BUT_IDX_BLUE_1 31
+#define BUT_IDX_MASK_BLUE_1 (1 << BUT_IDX_BLUE_1)
+// Botão Azul 2 - PA19
+#define BUT_PIO_BLUE_2 PIOA
+#define BUT_PIO_ID_BLUE_2 ID_PIOA
+#define BUT_IDX_BLUE_2 19
+#define BUT_IDX_MASK_BLUE_2 (1 << BUT_IDX_BLUE_2)
+// Botão Azul 3 - PB3
+#define BUT_PIO_BLUE_3 PIOB
+#define BUT_PIO_ID_BLUE_3 ID_PIOB
+#define BUT_IDX_BLUE_3 3
+#define BUT_IDX_MASK_BLUE_3 (1 << BUT_IDX_BLUE_3)
+// Botão Azul 4 - PB2
+#define BUT_PIO_BLUE_4 PIOB
+#define BUT_PIO_ID_BLUE_4 ID_PIOB
+#define BUT_IDX_BLUE_4 2
+#define BUT_IDX_MASK_BLUE_4 (1 << BUT_IDX_BLUE_4)
+
+// Botão Vermelho 5 - PD30
+#define BUT_PIO_RED_5 PIOD
+#define BUT_PIO_ID_RED_5 ID_PIOD
+#define BUT_IDX_RED_5 30
+#define BUT_IDX_MASK_RED_5 (1 << BUT_IDX_RED_5)
+// Botão Vermelho 6 - PC13
+#define BUT_PIO_RED_6 PIOC
+#define BUT_PIO_ID_RED_6 ID_PIOC
+#define BUT_IDX_RED_6 13
+#define BUT_IDX_MASK_RED_6 (1 << BUT_IDX_RED_6)
+// Botão Vermelho 7 - PA6
+#define BUT_PIO_RED_7 PIOA
+#define BUT_PIO_ID_RED_7 ID_PIOA
+#define BUT_IDX_RED_7 6
+#define BUT_IDX_MASK_RED_7 (1 << BUT_IDX_RED_7)
+// Botão Vermelho 8 - PD11
+#define BUT_PIO_RED_8 PIOD
+#define BUT_PIO_ID_RED_8 ID_PIOD
+#define BUT_IDX_RED_8 11
+#define BUT_IDX_MASK_RED_8 (1 << BUT_IDX_RED_8)
 
 
 // JOYSTICK
@@ -212,6 +247,7 @@ void but_callback_red_8(void)
 	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
 }
 
+
 // handler do joystick
 
 void joy1_callback(void)
@@ -261,9 +297,6 @@ void io_init(void)
 {
 
 	// Ativa PIOs
-	pmc_enable_periph_clk(LED_PIO_ID);
-
-
 
 	pmc_enable_periph_clk(BUT_PIO_ID_BLUE_1);
 	pmc_enable_periph_clk(BUT_PIO_ID_BLUE_2);
@@ -273,16 +306,18 @@ void io_init(void)
 	pmc_enable_periph_clk(BUT_PIO_ID_RED_6);
 	pmc_enable_periph_clk(BUT_PIO_ID_RED_7);
 	pmc_enable_periph_clk(BUT_PIO_ID_RED_8);
+
 	
 	// Configura Pinos
 	pio_set_debounce_filter(BUT_PIO_BLUE_1, BUT_IDX_MASK_BLUE_1, 120);
 	pio_set_debounce_filter(BUT_PIO_BLUE_1, BUT_IDX_MASK_BLUE_1, 120);
 	pio_set_debounce_filter(BUT_PIO_BLUE_1, BUT_IDX_MASK_BLUE_1, 120);
 	pio_set_debounce_filter(BUT_PIO_BLUE_1, BUT_IDX_MASK_BLUE_1, 120);
-	pio_set_debounce_filter(BUT_PIO_RED_8, BUT_IDX_MASK_RED_5, 120);
-	pio_set_debounce_filter(BUT_PIO_RED_8, BUT_IDX_MASK_RED_6, 120);
-	pio_set_debounce_filter(BUT_PIO_RED_8, BUT_IDX_MASK_RED_7, 120);
+	pio_set_debounce_filter(BUT_PIO_RED_5, BUT_IDX_MASK_RED_5, 120);
+	pio_set_debounce_filter(BUT_PIO_RED_6, BUT_IDX_MASK_RED_6, 120);
+	pio_set_debounce_filter(BUT_PIO_RED_7, BUT_IDX_MASK_RED_7, 120);
 	pio_set_debounce_filter(BUT_PIO_RED_8, BUT_IDX_MASK_RED_8, 120);
+
 		
 	pio_configure(BUT_PIO_BLUE_1, PIO_INPUT, BUT_IDX_MASK_BLUE_1, PIO_PULLUP | PIO_DEBOUNCE);
 	pio_configure(BUT_PIO_BLUE_2, PIO_INPUT, BUT_IDX_MASK_BLUE_2, PIO_PULLUP | PIO_DEBOUNCE);
@@ -304,6 +339,7 @@ void io_init(void)
 	pio_handler_set(BUT_PIO_RED_7, BUT_PIO_ID_RED_7, BUT_IDX_MASK_RED_7, PIO_IT_FALL_EDGE, but_callback_red_7);
 	pio_handler_set(BUT_PIO_RED_8, BUT_PIO_ID_RED_8, BUT_IDX_MASK_RED_8, PIO_IT_FALL_EDGE, but_callback_red_8);
 
+
 	// Ativa interrupcao
 
 	pio_enable_interrupt(BUT_PIO_BLUE_1, BUT_IDX_MASK_BLUE_1);
@@ -314,6 +350,7 @@ void io_init(void)
 	pio_enable_interrupt(BUT_PIO_RED_6, BUT_IDX_MASK_RED_6);
 	pio_enable_interrupt(BUT_PIO_RED_7, BUT_IDX_MASK_RED_7);
 	pio_enable_interrupt(BUT_PIO_RED_8, BUT_IDX_MASK_RED_8);
+
 
 	pio_get_interrupt_status(BUT_PIO_BLUE_1);
 	pio_get_interrupt_status(BUT_PIO_BLUE_2);
@@ -334,7 +371,7 @@ void io_init(void)
 	NVIC_EnableIRQ(BUT_PIO_ID_RED_6);
 	NVIC_EnableIRQ(BUT_PIO_ID_RED_7);
 	NVIC_EnableIRQ(BUT_PIO_ID_RED_8);
-	NVIC_SetPriority(BUT_PIO_ID, 4);
+
 	NVIC_SetPriority(BUT_PIO_ID_BLUE_1, 4);
 	NVIC_SetPriority(BUT_PIO_ID_BLUE_2, 4);
 	NVIC_SetPriority(BUT_PIO_ID_BLUE_3, 4);
@@ -343,7 +380,7 @@ void io_init(void)
 	NVIC_SetPriority(BUT_PIO_ID_RED_6, 4);
 	NVIC_SetPriority(BUT_PIO_ID_RED_7, 4);
 	NVIC_SetPriority(BUT_PIO_ID_RED_8, 4);
-	
+
 	
 }
 
