@@ -2,3 +2,5 @@ Sensor Potenciômetro - Volume do Som
 Leitura analógica - cabo laranja - 47K Ohm
 Vcc - cabo vermelho - 470M Ohm
 Gnd - cabo preto
+
+44 leds na fita
