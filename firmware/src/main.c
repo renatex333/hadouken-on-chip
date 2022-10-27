@@ -39,11 +39,12 @@
 #define BUT_IDX_BLUE_4 2
 #define BUT_IDX_MASK_BLUE_4 (1 << BUT_IDX_BLUE_4)
 
-// Botão Vermelho 5 - PD30
-#define BUT_PIO_RED_5 PIOD
-#define BUT_PIO_ID_RED_5 ID_PIOD
-#define BUT_IDX_RED_5 30
+// Botão Vermelho 5 - PC19
+#define BUT_PIO_RED_5 PIOC
+#define BUT_PIO_ID_RED_5 ID_PIOC
+#define BUT_IDX_RED_5 19
 #define BUT_IDX_MASK_RED_5 (1 << BUT_IDX_RED_5)
+
 // Botão Vermelho 6 - PC13
 #define BUT_PIO_RED_6 PIOC
 #define BUT_PIO_ID_RED_6 ID_PIOC
@@ -118,6 +119,9 @@
 #define TASK_JOY_STACK_SIZE (4096 / sizeof(portSTACK_TYPE))
 #define TASK_JOY_STACK_PRIORITY (tskIDLE_PRIORITY)
 
+// task Handshake
+#define TASK_HANDSHAKE_STACK_SIZE (4096 / sizeof(portSTACK_TYPE))
+#define TASK_HANDSHAKE_STACK_PRIORITY (tskIDLE_PRIORITY)
 /************************************************************************/
 /* recursos RTOS                                                        */
 /************************************************************************/
@@ -146,14 +150,13 @@ extern void xPortSysTickHandler(void);
 static void config_AFEC_pot(Afec *afec, uint32_t afec_id, uint32_t afec_channel,
 afec_callback_t callback);
 void envia_dado(char comando);
+void create_tasks(void);
 
-/************************************************************************/
-/* constants                                                            */
-/************************************************************************/
 
 /************************************************************************/
 /* variaveis globais                                                    */
 /************************************************************************/
+volatile char handshake;
 
 /************************************************************************/
 /* RTOS application HOOK                                                */
@@ -594,6 +597,8 @@ void envia_dado(char comando){
 	vTaskDelay(1 / portTICK_PERIOD_MS);
 }
 
+
+
 /************************************************************************/
 /* TASKS                                                                */
 /************************************************************************/
@@ -611,6 +616,45 @@ void task_bluetooth(void)
 	
 	// Task não deve retornar.
 	while (1){
+		}
+}
+
+void task_handshake(void)
+{
+	handshake = '1';
+	char rx;
+	
+	// Task não deve retornar.
+	while (1){
+		if(handshake == '1'){
+			if(usart_is_tx_ready(USART_COM)){
+				printf("Enviando handshake \n");
+				while (!usart_is_tx_ready(USART_COM))
+				{
+					vTaskDelay(10 / portTICK_PERIOD_MS);
+				}
+				usart_write(USART_COM, 'P');
+
+				while (!usart_is_tx_ready(USART_COM))
+				{
+					vTaskDelay(10 / portTICK_PERIOD_MS);
+				}
+				usart_write(USART_COM, 'X');
+			}
+			
+			if(!usart_read(USART_COM, &rx)) {
+				if(rx == '1') {
+					printf("handshake concluido \n");
+					/*Criacao tasks dps do handshake */
+					create_tasks();
+					handshake = '0';
+				}
+				
+			}
+			vTaskDelay(10);
+			
+		}
+
 	}
 }
 void task_button_handler(void)
@@ -698,6 +742,32 @@ static void task_vol(void *pvParameters) {
     }
   }
 }
+
+void create_tasks(){
+	/* Create task joystick */
+	if (xTaskCreate(task_joy, "JOY",TASK_JOY_STACK_SIZE, NULL,
+	TASK_JOY_STACK_PRIORITY, NULL) != pdPASS) {
+		printf("Failed to create Joy task\r\n");
+		} else {
+		printf("task joy \r\n");
+	}
+
+	/* Create task to handle button */
+	if (xTaskCreate(task_button_handler, "BUT", TASK_BUTTON_HANDLER_STACK_SIZE, NULL,
+	TASK_BUTTON_HANDLER_STACK_PRIORITY, NULL) != pdPASS) {
+		printf("Failed to create BUT task\r\n");
+		} else {
+		printf("task but \r\n");
+	}
+	
+	if (xTaskCreate(task_vol, "VOL", TASK_VOL_STACK_SIZE, NULL,
+	TASK_VOL_STACK_PRIORITY, NULL) != pdPASS) {
+		printf("Failed to create test VOL task\r\n");
+	} else {
+	printf("task vol \r\n");
+}
+}
+
 /************************************************************************/
 /* main                                                                 */
 /************************************************************************/
@@ -726,34 +796,23 @@ int main(void)
 	if (xQueueVOL == NULL) {
 		printf("falha em criar a queue xQueueVOL \n");
 	}
+	
 
-	/* Create task to make led blink */	
+	
+	/* Create task bluetooth */
 	if (xTaskCreate(task_bluetooth, "BLT",TASK_BLUETOOTH_STACK_SIZE, NULL,
 	TASK_BLUETOOTH_STACK_PRIORITY, NULL) != pdPASS) {
-		printf("Failed to create Joy task\r\n");
+		printf("Failed to create Bluetooth task\r\n");
 		} else {
-		printf("task joy \r\n");
-	}
-
-	/* Create task joystick */	
-	if (xTaskCreate(task_joy, "JOY",TASK_JOY_STACK_SIZE, NULL,
-	TASK_JOY_STACK_PRIORITY, NULL) != pdPASS) {
-		printf("Failed to create Joy task\r\n");
-		} else {
-		printf("task joy \r\n");
-	}
-
-	/* Create task to handle button */
-	if (xTaskCreate(task_button_handler, "BUT", TASK_BUTTON_HANDLER_STACK_SIZE, NULL,
-	 TASK_BUTTON_HANDLER_STACK_PRIORITY, NULL) != pdPASS) {
-		printf("Failed to create BUT task\r\n");
-		} else {
-		printf("task but \r\n");
+		printf("task bluetooth \r\n");
 	}
 	
-	if (xTaskCreate(task_vol, "VOL", TASK_VOL_STACK_SIZE, NULL,
-	TASK_VOL_STACK_PRIORITY, NULL) != pdPASS) {
-		printf("Failed to create test VOL task\r\n");
+	/* Create task Handshake */
+	if (xTaskCreate(task_handshake, "BLT",TASK_HANDSHAKE_STACK_SIZE, NULL,
+	TASK_HANDSHAKE_STACK_PRIORITY, NULL) != pdPASS) {
+		printf("Failed to create Handshake task\r\n");
+		} else {
+		printf("task handshake \r\n");
 	}
 
 	/* Start the scheduler. */

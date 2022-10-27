@@ -4,6 +4,7 @@ import time
 import logging
 import pyvjoy # Windows apenas
 
+
 class MyControllerMap:
     def __init__(self):
         self.button = {'A': 1}
@@ -38,6 +39,22 @@ class SerialControllerInterface:
 
         self.incoming = self.ser.read()
 
+    def handshake(self):
+        while(1):
+            data = self.ser.read()
+            if data == b'P':
+                logging.info("recieved handshake")
+                self.ser.write(b'1')
+                logging.info("Sent handshake")
+                time.sleep(1)
+                break
+
+            else:
+                logging.info("Handshake in progress")
+                logging.debug("Received INCOMING: {}".format(self.incoming))
+                time.sleep(1)           
+
+
 
 class DummyControllerInterface:
     def __init__(self):
@@ -69,7 +86,7 @@ if __name__ == '__main__':
     else:
         controller = SerialControllerInterface(port=args.serial_port, baudrate=args.baudrate)
 
-    # controller.handshake();  
+    controller.handshake();
 
     while True:
         controller.update()
