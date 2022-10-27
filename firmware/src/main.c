@@ -157,6 +157,7 @@ void create_tasks(void);
 /* variaveis globais                                                    */
 /************************************************************************/
 volatile char handshake;
+volatile char apertado;
 
 /************************************************************************/
 /* RTOS application HOOK                                                */
@@ -255,30 +256,59 @@ void but_callback_red_8(void)
 
 void joy1_callback(void)
 {
-	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
-	char direcao = 'd';
-	xQueueSendFromISR(xQueueJoy, &direcao, &xHigherPriorityTaskWoken);
+	if (pio_get(JOY1_PIO, PIO_INPUT, JOY1_IDX_MASK)) {
+		// PINO == 1 --> Borda de subida
+		apertado = 0;
+		} else {
+		// PINO == 0 --> Borda de descida
+		BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+		char direcao = 'd';
+		xQueueSendFromISR(xQueueJoy, &direcao, &xHigherPriorityTaskWoken);
+		apertado = 1;
+	}
+	
 }
 
 void joy2_callback(void)
 {
-	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
-	char direcao = 's';
-	xQueueSendFromISR(xQueueJoy, &direcao, &xHigherPriorityTaskWoken);
+	if (pio_get(JOY2_PIO, PIO_INPUT, JOY2_IDX_MASK)) {
+		// PINO == 1 --> Borda de subida
+		apertado = 0;
+		} else {
+		// PINO == 0 --> Borda de descida
+		BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+		char direcao = 's';
+		xQueueSendFromISR(xQueueJoy, &direcao, &xHigherPriorityTaskWoken);
+		apertado = 1;
+	}
 }
 
 void joy3_callback(void)
 {
-	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
-	char direcao = 'a';
-	xQueueSendFromISR(xQueueJoy, &direcao, &xHigherPriorityTaskWoken);
+		if (pio_get(JOY3_PIO, PIO_INPUT, JOY3_IDX_MASK)) {
+			// PINO == 1 --> Borda de subida
+			apertado = 0;
+			} else {
+			// PINO == 0 --> Borda de descida
+			BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+			char direcao = 'a';
+			xQueueSendFromISR(xQueueJoy, &direcao, &xHigherPriorityTaskWoken);
+			apertado = 1;
+		}
 }
 
 void joy4_callback(void)
 {
-	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
-	char direcao = 'w';
-	xQueueSendFromISR(xQueueJoy, &direcao, &xHigherPriorityTaskWoken);
+	if (pio_get(JOY4_PIO, PIO_INPUT, JOY4_IDX_MASK)) {
+		// PINO == 1 --> Borda de subida
+		apertado = 0;
+		} else {
+		// PINO == 0 --> Borda de descida
+		BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+		char direcao = 'w';
+		xQueueSendFromISR(xQueueJoy, &direcao, &xHigherPriorityTaskWoken);
+		apertado = 1;
+	}
 }
 
 
@@ -401,10 +431,10 @@ void joy_init(void)
 	pio_configure(JOY3_PIO, PIO_INPUT, JOY3_IDX_MASK, PIO_PULLUP | PIO_DEBOUNCE);
 	pio_configure(JOY4_PIO, PIO_INPUT, JOY4_IDX_MASK, PIO_PULLUP | PIO_DEBOUNCE);
 
-	pio_handler_set(JOY1_PIO, JOY1_PIO_ID, JOY1_IDX_MASK, PIO_IT_FALL_EDGE, joy1_callback);
-	pio_handler_set(JOY2_PIO, JOY2_PIO_ID, JOY2_IDX_MASK, PIO_IT_FALL_EDGE, joy2_callback);
-	pio_handler_set(JOY3_PIO, JOY3_PIO_ID, JOY3_IDX_MASK, PIO_IT_FALL_EDGE, joy3_callback);
-	pio_handler_set(JOY4_PIO, JOY4_PIO_ID, JOY4_IDX_MASK, PIO_IT_FALL_EDGE, joy4_callback);
+	pio_handler_set(JOY1_PIO, JOY1_PIO_ID, JOY1_IDX_MASK, PIO_IT_EDGE, joy1_callback);
+	pio_handler_set(JOY2_PIO, JOY2_PIO_ID, JOY2_IDX_MASK, PIO_IT_EDGE, joy2_callback);
+	pio_handler_set(JOY3_PIO, JOY3_PIO_ID, JOY3_IDX_MASK, PIO_IT_EDGE, joy3_callback);
+	pio_handler_set(JOY4_PIO, JOY4_PIO_ID, JOY4_IDX_MASK, PIO_IT_EDGE, joy4_callback);
 
 	// Ativa interrupcao
 	pio_enable_interrupt(JOY1_PIO, JOY1_IDX_MASK);
@@ -696,7 +726,9 @@ static void task_joy(void *pvParameters) {
        */
       /* converte ms -> ticks */
       printf("direcao: %c \n", direcao);
-	  envia_dado(direcao);
+	  while(apertado){
+		  envia_dado(direcao);
+	  }
     }
 
     /* suspende por delayMs */

@@ -34,6 +34,7 @@ class SerialControllerInterface:
         if data == b'1':
             logging.info("Sending press")
             self.j.set_button(self.mapping.button['A'], 1)
+            
         elif data == b'0':
             self.j.set_button(self.mapping.button['A'], 0)
 
