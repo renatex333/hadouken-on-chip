@@ -682,9 +682,10 @@ static void task_joy(void *pvParameters) {
        */
       /* converte ms -> ticks */
       printf("direcao: %c \n", direcao);
-			while(apertado){
-				envia_dado(direcao);
-			}
+      while(apertado){
+        envia_dado(direcao);
+        vTaskDelay(100);
+      }
     }
 
     /* suspende por delayMs */
