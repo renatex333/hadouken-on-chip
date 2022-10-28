@@ -682,9 +682,9 @@ static void task_joy(void *pvParameters) {
        */
       /* converte ms -> ticks */
       printf("direcao: %c \n", direcao);
-	  while(apertado){
-		  envia_dado(direcao);
-	  }
+			while(apertado){
+				envia_dado(direcao);
+			}
     }
 
     /* suspende por delayMs */
@@ -723,8 +723,8 @@ static void task_vol(void *pvParameters) {
   uint leitura;
 
   for(;;) {
-    if (xQueueReceive(xQueueVOL, &(leitura), 2000)) {
-      //printf("Leit: %d \n", leitura);
+    if (xQueueReceive(xQueueVOL, &(leitura), 1000)) {
+      printf("Leitura Volume: %d \n", leitura);
     } else {
       printf("Nao chegou um novo dado em 1 segundo \n");
     }
