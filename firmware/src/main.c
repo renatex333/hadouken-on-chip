@@ -1,104 +1,16 @@
 /************************************************************************
  * 5 semestre - Eng. da Computao - Insper
  *
- * 2021 - Exemplo com HC05 com RTOS
- *
+ * Projeto de Computação Embarcada
+ * Por: Lucas, Matheus e Renato
  */
 
 #include <asf.h>
 #include "conf_board.h"
 #include <string.h>
-
-/************************************************************************/
-/* defines                                                              */
-/************************************************************************/
-
-// Entrada da leitura do potenciometro que vai alterar o volume
-#define AFEC_POT AFEC0
-#define AFEC_POT_ID ID_AFEC0
-#define AFEC_POT_CHANNEL 0 // Canal do pino PD30
-
-// Botão Azul 1 - PC31
-#define BUT_PIO_BLUE_1 PIOC
-#define BUT_PIO_ID_BLUE_1 ID_PIOC
-#define BUT_IDX_BLUE_1 31
-#define BUT_IDX_MASK_BLUE_1 (1 << BUT_IDX_BLUE_1)
-// Botão Azul 2 - PA19
-#define BUT_PIO_BLUE_2 PIOA
-#define BUT_PIO_ID_BLUE_2 ID_PIOA
-#define BUT_IDX_BLUE_2 19
-#define BUT_IDX_MASK_BLUE_2 (1 << BUT_IDX_BLUE_2)
-// Botão Azul 3 - PB3
-#define BUT_PIO_BLUE_3 PIOB
-#define BUT_PIO_ID_BLUE_3 ID_PIOB
-#define BUT_IDX_BLUE_3 3
-#define BUT_IDX_MASK_BLUE_3 (1 << BUT_IDX_BLUE_3)
-// Botão Azul 4 - PB2
-#define BUT_PIO_BLUE_4 PIOB
-#define BUT_PIO_ID_BLUE_4 ID_PIOB
-#define BUT_IDX_BLUE_4 2
-#define BUT_IDX_MASK_BLUE_4 (1 << BUT_IDX_BLUE_4)
-
-// Botão Vermelho 5 - PC19
-#define BUT_PIO_RED_5 PIOC
-#define BUT_PIO_ID_RED_5 ID_PIOC
-#define BUT_IDX_RED_5 19
-#define BUT_IDX_MASK_RED_5 (1 << BUT_IDX_RED_5)
-
-// Botão Vermelho 6 - PC13
-#define BUT_PIO_RED_6 PIOC
-#define BUT_PIO_ID_RED_6 ID_PIOC
-#define BUT_IDX_RED_6 13
-#define BUT_IDX_MASK_RED_6 (1 << BUT_IDX_RED_6)
-// Botão Vermelho 7 - PA6
-#define BUT_PIO_RED_7 PIOA
-#define BUT_PIO_ID_RED_7 ID_PIOA
-#define BUT_IDX_RED_7 6
-#define BUT_IDX_MASK_RED_7 (1 << BUT_IDX_RED_7)
-// Botão Vermelho 8 - PD11
-#define BUT_PIO_RED_8 PIOD
-#define BUT_PIO_ID_RED_8 ID_PIOD
-#define BUT_IDX_RED_8 11
-#define BUT_IDX_MASK_RED_8 (1 << BUT_IDX_RED_8)
-
-
-// JOYSTICK
-// Primeira entrada
-#define JOY1_PIO PIOD
-#define JOY1_PIO_ID ID_PIOD
-#define JOY1_IDX 22
-#define JOY1_IDX_MASK (1 << JOY1_IDX)
-
-#define JOY2_PIO PIOA
-#define JOY2_PIO_ID ID_PIOA
-#define JOY2_IDX 24
-#define JOY2_IDX_MASK (1 << JOY2_IDX)
-
-#define JOY3_PIO PIOA
-#define JOY3_PIO_ID ID_PIOA
-#define JOY3_IDX 5
-#define JOY3_IDX_MASK (1 << JOY3_IDX)
-
-#define JOY4_PIO PIOD
-#define JOY4_PIO_ID ID_PIOD
-#define JOY4_IDX 12
-#define JOY4_IDX_MASK (1 << JOY4_IDX)
-
-// #endregion
-
-// usart (bluetooth ou serial)
-// Descomente para enviar dados
-// pela serial debug
-
-//#define DEBUG_SERIAL
-
-#ifdef DEBUG_SERIAL
-#define USART_COM USART1
-#define USART_COM_ID ID_USART1
-#else
-#define USART_COM USART0
-#define USART_COM_ID ID_USART0
-#endif
+#include "helpers/helpers.h"
+#include "ledHelpers/dataTypes.h"
+#include "ledHelpers/ledColors.h"
 
 /************************************************************************/
 /* RTOS                                                                 */
@@ -122,13 +34,18 @@
 // task Handshake
 #define TASK_HANDSHAKE_STACK_SIZE (4096 / sizeof(portSTACK_TYPE))
 #define TASK_HANDSHAKE_STACK_PRIORITY (tskIDLE_PRIORITY)
+
+// task Led
+#define TASK_LED_STACK_SIZE (4096*8 / sizeof(portSTACK_TYPE))
+#define TASK_LED_STACK_PRIORITY        (tskIDLE_PRIORITY)
+
 /************************************************************************/
 /* recursos RTOS                                                        */
 /************************************************************************/
 
 TimerHandle_t xTimer;
 
-/** Queue for msg log send data */
+// Queue do volume
 QueueHandle_t xQueueVOL;
 
 // Queue dos botoes
@@ -136,6 +53,9 @@ QueueHandle_t xQueueButton;
 
 // Queue do Joystick
 QueueHandle_t xQueueJoy;
+
+// Queue da fita de led
+QueueHandle_t xQueueLed;
 
 /************************************************************************/
 /* prototypes                                                           */
@@ -156,8 +76,16 @@ void create_tasks(void);
 /************************************************************************/
 /* variaveis globais                                                    */
 /************************************************************************/
+
 volatile char handshake;
 volatile char apertado;
+
+/************************************************************************/
+/* prototypes local                                                     */
+/************************************************************************/
+
+static void LED_init(void);
+void LEDS_light_up(char *, int);
 
 /************************************************************************/
 /* RTOS application HOOK                                                */
@@ -606,6 +534,11 @@ int hc05_init(void)
 	usart_send_command(USART_COM, buffer_rx, 1000, "AT+PIN1234", 100);
 }
 
+void LED_init(void) {
+	pmc_enable_periph_clk(PIN_DATA_ID);
+	pio_configure(PIN_DATA, PIO_OUTPUT_0, PIN_DATA_IDX_MASK, PIO_DEFAULT);
+}
+
 void envia_dado(char comando){
 	
 	char eof = 'X';
@@ -625,6 +558,30 @@ void envia_dado(char comando){
 
 	// dorme por 500 ms
 	vTaskDelay(1 / portTICK_PERIOD_MS);
+}
+
+void LEDS_light_up(char *array, int n) {
+	/* Acender todos os leds com apenas uma cor*/
+	//for(int i = 0; i < n; i++) {
+	//colorGREEN();
+	//}
+	
+	/* Se quiser acender só alguns LEDS específicos */
+	//for(int i = 0; i < n; i++) array[i] ? colorRED() : colorBLACK();
+	
+	/* Se quiser acender todos os leds com cada uma das 3 cores */
+	for(int i = 0; i < n; i++) {
+		colorGREEN();
+	}
+	delay_ms(500);
+	for(int j = 0; j < n; j++) {
+		colorBLUE();
+	}
+	delay_ms(500);
+	for(int k = 0; k < n; k++) {
+		colorRED();
+	}
+	
 }
 
 
@@ -682,7 +639,6 @@ void task_handshake(void)
 				
 			}
 			vTaskDelay(10);
-			
 		}
 
 	}
@@ -726,10 +682,10 @@ static void task_joy(void *pvParameters) {
        */
       /* converte ms -> ticks */
       printf("direcao: %c \n", direcao);
-	  while(apertado){
-		  envia_dado(direcao);
-		  vTaskDelay(100);
-	  }
+      while(apertado){
+        envia_dado(direcao);
+        vTaskDelay(100);
+      }
     }
 
     /* suspende por delayMs */
@@ -768,19 +724,33 @@ static void task_vol(void *pvParameters) {
   uint leitura;
 
   for(;;) {
-    if (xQueueReceive(xQueueVOL, &(leitura), 2000)) {
-      //printf("Leit: %d \n", leitura);
+    if (xQueueReceive(xQueueVOL, &(leitura), 1000)) {
+      printf("Leitura Volume: %d \n", leitura);
     } else {
       printf("Nao chegou um novo dado em 1 segundo \n");
     }
   }
 }
 
+static void task_led(void *pvParameters) {
+	char leds[LEDS_NUMBER];
+	for(;;){
+		// Acende LEDs apenas se o botão for pressionado
+		if (xQueueReceive(xQueueLed, leds, 100)) {
+			taskENTER_CRITICAL();
+			LEDS_light_up(leds, LEDS_NUMBER);
+			taskEXIT_CRITICAL();
+			vTaskDelay(100);
+			clearLEDs();
+		}
+	}
+}
+
 void create_tasks(){
 	/* Create task joystick */
 	if (xTaskCreate(task_joy, "JOY",TASK_JOY_STACK_SIZE, NULL,
 	TASK_JOY_STACK_PRIORITY, NULL) != pdPASS) {
-		printf("Failed to create Joy task\r\n");
+		printf("Falhou ao criar Joy task\r\n");
 		} else {
 		printf("task joy \r\n");
 	}
@@ -788,17 +758,22 @@ void create_tasks(){
 	/* Create task to handle button */
 	if (xTaskCreate(task_button_handler, "BUT", TASK_BUTTON_HANDLER_STACK_SIZE, NULL,
 	TASK_BUTTON_HANDLER_STACK_PRIORITY, NULL) != pdPASS) {
-		printf("Failed to create BUT task\r\n");
+		printf("Falhou ao criar BUT task\r\n");
 		} else {
 		printf("task but \r\n");
 	}
 	
 	if (xTaskCreate(task_vol, "VOL", TASK_VOL_STACK_SIZE, NULL,
 	TASK_VOL_STACK_PRIORITY, NULL) != pdPASS) {
-		printf("Failed to create test VOL task\r\n");
+		printf("Falhou ao criar VOL task\r\n");
 	} else {
-	printf("task vol \r\n");
-}
+		printf("task vol \r\n");
+	}
+	
+	if (xTaskCreate(task_led, "LED", TASK_LED_STACK_SIZE, NULL, 
+	TASK_LED_STACK_PRIORITY, NULL) != pdPASS) {
+		printf("Falhou ao criar a task_led \r\n");
+	}
 }
 
 /************************************************************************/
@@ -811,23 +786,30 @@ int main(void)
 	sysclk_init();
 	board_init();
 
+	LED_init();
+	
 	configure_console();
 
 	xQueueButton = xQueueCreate(1, sizeof(char));
 	if (xQueueButton == NULL)
 	{
-		printf("Erro ao criar fila de botões");
+		printf("Erro ao criar fila de botões \n");
 	}
 
 	xQueueJoy = xQueueCreate(4, sizeof(char));
 	if (xQueueJoy == NULL)
 	{
-		printf("Erro ao criar fila de botões");
+		printf("Erro ao criar fila de botões \n");
 	}
 	
 	xQueueVOL = xQueueCreate(100, sizeof(uint));
 	if (xQueueVOL == NULL) {
-		printf("falha em criar a queue xQueueVOL \n");
+		printf("Erro ao criar fila de volume \n");
+	}
+	
+	xQueueLed = xQueueCreate(20, sizeof(char));
+	if (xQueueLed == NULL){
+		printf("Erro ao criar fila dos Leds \n");
 	}
 	
 
@@ -843,7 +825,7 @@ int main(void)
 	/* Create task Handshake */
 	if (xTaskCreate(task_handshake, "BLT",TASK_HANDSHAKE_STACK_SIZE, NULL,
 	TASK_HANDSHAKE_STACK_PRIORITY, NULL) != pdPASS) {
-		printf("Failed to create Handshake task\r\n");
+		printf("Falhou ao criar Handshake task\r\n");
 		} else {
 		printf("task handshake \r\n");
 	}

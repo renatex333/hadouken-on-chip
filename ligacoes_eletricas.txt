@@ -1,4 +1,32 @@
 Sensor Potenciômetro - Volume do Som
-Leitura analógica - cabo laranja - 47K Ohm
-Vcc - cabo vermelho - 470M Ohm
+Leitura analógica - pino pd30 - cabo laranja - 12K Ohm
+Vcc - cabo vermelho - 460M Ohm
 Gnd - cabo preto
+Leitura máxima: 3830
+Leitura mínima: 1757
+5 níveis de volume:
+0% - 1757
+25% - 2275
+50% - 2793
+75% - 3311
+100% - 3830
+
+
+44 leds na fita
+
+d30
+c31
+a19
+b3
+b2
+c19
+c13
+a6
+d11
+d22
+a24
+a5
+d12
+b0
+b1
+d28
