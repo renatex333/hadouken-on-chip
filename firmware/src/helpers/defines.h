@@ -58,10 +58,10 @@
 // Número de LEDs na fita
 #define LEDS_NUMBER 44
 
-//LED DATA PIN - PD30
+//LED DATA PIN - PD28
 #define PIN_DATA      PIOD
 #define PIN_DATA_ID   ID_PIOD
-#define PIN_DATA_IDX  30
+#define PIN_DATA_IDX  28
 #define PIN_DATA_IDX_MASK (1 << PIN_DATA_IDX)
 
 // JOYSTICK
