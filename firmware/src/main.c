@@ -527,7 +527,7 @@ int hc05_init(void)
 	vTaskDelay(500 / portTICK_PERIOD_MS);
 	usart_send_command(USART_COM, buffer_rx, 1000, "AT", 100);
 	vTaskDelay(500 / portTICK_PERIOD_MS);
-	usart_send_command(USART_COM, buffer_rx, 1000, "AT+NAMECbrutius", 100);
+	usart_send_command(USART_COM, buffer_rx, 1000, "AT+NAMEBambam", 100);
 	vTaskDelay(500 / portTICK_PERIOD_MS);
 	usart_send_command(USART_COM, buffer_rx, 1000, "AT", 100);
 	vTaskDelay(500 / portTICK_PERIOD_MS);
@@ -722,10 +722,33 @@ static void task_vol(void *pvParameters) {
 
   // variável para recever dados da fila
   uint leitura;
+	// Nível de volume dado em:
+	// g = 100%; h = 75%; j = 50%; k = 25%; l = 0%;
+	char nivel_volume = 'X', nivel_anterior = 'X';
 
   for(;;) {
     if (xQueueReceive(xQueueVOL, &(leitura), 1000)) {
-      printf("Leitura Volume: %d \n", leitura);
+			printf("Leitura Volume: %d \n", leitura);
+			if (leitura <= 2300) {
+				nivel_volume = 'l';
+			} else if ((2300 < leitura) && (leitura <= 2600)) {
+				nivel_volume = 'k';
+			} else if ((2600 < leitura) && (leitura <= 2900)) {
+				nivel_volume = 'j';
+			} else if ((2900 < leitura) && (leitura <= 3500)) {
+				nivel_volume = 'h';
+			}	else if (3500 < leitura) {
+				nivel_volume = 'g';
+			}
+			printf("Nivel Volume: %c \n", nivel_volume);
+			
+			if (nivel_anterior == nivel_volume) {
+				printf("Nao precisa atualizar volume \n");
+			} else {
+				nivel_anterior = nivel_volume;
+				printf("Precisa atualizar o volume do computador \n");
+			}
+			
     } else {
       printf("Nao chegou um novo dado em 1 segundo \n");
     }

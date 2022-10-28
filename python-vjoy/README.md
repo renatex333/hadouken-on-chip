@@ -47,6 +47,8 @@ Se estiver tudo certo com o passo anterior, tente agora executar o `game_control
 
 - `PORTA_COM `: porta do windows que o bluetooth conectou
 
+    python3 .\game_controller.py COM6 -b 115200
+
 ### Pronto!
 
 Agora você pode seguir o desenvolvimento do seu projeto!
