@@ -85,7 +85,7 @@ volatile char apertado;
 /************************************************************************/
 
 static void LED_init(void);
-void LEDS_light_up(char *, int);
+void LEDS_light_up(char, int);
 
 /************************************************************************/
 /* RTOS application HOOK                                                */
@@ -560,26 +560,19 @@ void envia_dado(char comando){
 	vTaskDelay(1 / portTICK_PERIOD_MS);
 }
 
-void LEDS_light_up(char *array, int n) {
-	/* Acender todos os leds com apenas uma cor*/
-	//for(int i = 0; i < n; i++) {
-	//colorGREEN();
-	//}
-	
-	/* Se quiser acender só alguns LEDS específicos */
-	//for(int i = 0; i < n; i++) array[i] ? colorRED() : colorBLACK();
-	
-	/* Se quiser acender todos os leds com cada uma das 3 cores */
-	for(int i = 0; i < n; i++) {
-		colorGREEN();
-	}
-	delay_ms(500);
-	for(int j = 0; j < n; j++) {
-		colorBLUE();
-	}
-	delay_ms(500);
-	for(int k = 0; k < n; k++) {
-		colorRED();
+void LEDS_light_up(char flag, int n) {
+	if (flag == 'g') {
+		for(int i = 0; i < n; i++) {
+			colorGREEN();
+		}
+	} else if (flag == 'r') {
+		for(int i = 0; i < n; i++) {
+			colorRED();
+		}
+	} else if (flag == 'b') {
+		for(int i = 0; i < n; i++) {
+			colorBLUE();
+		}
 	}
 	
 }
@@ -645,7 +638,7 @@ void task_handshake(void)
 }
 void task_button_handler(void)
 {
-	char botao = '0';
+	char botao = '0', flag = '0';
 
 	/* tarefas de um RTOS não devem retornar */
 	for (;;) {
@@ -656,15 +649,24 @@ void task_button_handler(void)
 		*/
 		/* converte ms -> ticks */
 		printf("botao: %c \n", botao);
+		// Flag 'r' e 'b' servem para indicar que os LEDs devem acender vermelho ou azul respectivamente
+		if (botao == '1' || botao == '2' || botao == '3' || botao == '4' || botao == '5') {
+			flag = 'r';
+		} else {
+			flag = 'b';
+		}
+		taskENTER_CRITICAL();
+		LEDS_light_up(flag, LEDS_NUMBER);
+		taskEXIT_CRITICAL();
 		envia_dado(botao);
+		vTaskDelay(100);
+		clearLEDs();
 	}
 	//else{
 		//printf("botao: 0 \n",);
 		//envia_dado('0');
 	//}
 
-	/* suspende por delayMs */
-	vTaskDelay(100);
 	}
 }
 
@@ -683,14 +685,18 @@ static void task_joy(void *pvParameters) {
       /* converte ms -> ticks */
       printf("direcao: %c \n", direcao);
       while(apertado){
+				// Flag 'g' serve para indicar que os LEDs devem acender verde
+				taskENTER_CRITICAL();
+				LEDS_light_up('g', LEDS_NUMBER);
+				taskEXIT_CRITICAL();
         envia_dado(direcao);
         vTaskDelay(100);
+				clearLEDs();
       }
     }
-
     /* suspende por delayMs */
     vTaskDelay(100);
-  }
+   }
 }
 
 void vTimerCallback(TimerHandle_t xTimer) {
@@ -727,8 +733,8 @@ static void task_vol(void *pvParameters) {
 	char nivel_volume = 'X', nivel_anterior = 'X';
 
   for(;;) {
+		// Verifica se chegou algum dado na Queue
     if (xQueueReceive(xQueueVOL, &(leitura), 1000)) {
-			printf("Leitura Volume: %d \n", leitura);
 			if (leitura <= 2300) {
 				nivel_volume = 'l';
 			} else if ((2300 < leitura) && (leitura <= 2600)) {
@@ -740,15 +746,12 @@ static void task_vol(void *pvParameters) {
 			}	else if (3500 < leitura) {
 				nivel_volume = 'g';
 			}
-			printf("Nivel Volume: %c \n", nivel_volume);
 			
-			if (nivel_anterior == nivel_volume) {
-				printf("Nao precisa atualizar volume \n");
-			} else {
+			if (nivel_anterior != nivel_volume) {
 				nivel_anterior = nivel_volume;
-				printf("Precisa atualizar o volume do computador \n");
+				envia_dado(nivel_volume);
+				vTaskDelay(100);
 			}
-			
     } else {
       printf("Nao chegou um novo dado em 1 segundo \n");
     }

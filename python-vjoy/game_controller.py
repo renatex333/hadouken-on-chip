@@ -3,12 +3,19 @@ import argparse
 import time
 import logging
 import pyvjoy # Windows apenas
+# Volume
+from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
+from ctypes import cast, POINTER
+from comtypes import CLSCTX_ALL
 
 
 class MyControllerMap:
     def __init__(self):
         self.set_button = {'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E' : 5, 'F' : 6, 'G' : 7, 'H': 8, 'I': 9, 'J': 10, 'K': 11, 'L': 12}
-        
+        # g = 100%; h = 75%; j = 50%; k = 25%; l = 0%;
+        # Baseada em uma escala de decibéis
+        self.set_volume = {'l': -51, 'k': -20, 'j': -10.015, 'h': -4, 'g': 0}
+
 
 class SerialControllerInterface:
 
@@ -21,6 +28,11 @@ class SerialControllerInterface:
         self.mapping = MyControllerMap()
         self.j = pyvjoy.VJoyDevice(1)
         self.incoming = '0'
+
+        # Para controlar volume
+        self.devices = AudioUtilities.GetSpeakers()
+        self.interface = self.devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
+        self.volume = cast(self.interface, POINTER(IAudioEndpointVolume))
 
     def set_button(self,buttonID,state):
         """Set a given button (numbered from 1) to On (1 or True) or Off (0 or False)"""
@@ -118,13 +130,23 @@ class SerialControllerInterface:
             time.sleep(0.1)
             self.j.set_button(self.mapping.set_button['L'], 0)
             time.sleep(0.1)
+
+        elif data == b'l':
+            logging.info("Volume set 0%")
+            self.volume.SetMasterVolumeLevel(self.mapping.set_volume['l'], None)
+        elif data == b'k':
+            logging.info("Volume set 25%")
+            self.volume.SetMasterVolumeLevel(self.mapping.set_volume['k'], None)
+        elif data == b'j':
+            logging.info("Volume set 50%")
+            self.volume.SetMasterVolumeLevel(self.mapping.set_volume['j'], None)
+        elif data == b'h':
+            logging.info("Volume set 75%")
+            self.volume.SetMasterVolumeLevel(self.mapping.set_volume['h'], None)
+        elif data == b'g':
+            logging.info("Volume set 100%")
+            self.volume.SetMasterVolumeLevel(self.mapping.set_volume['g'], None)
         
-
-    
-
-
-
-
         self.incoming = self.ser.read()
 
     def handshake(self):
