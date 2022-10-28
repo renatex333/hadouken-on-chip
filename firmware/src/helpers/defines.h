@@ -55,6 +55,12 @@
 #define BUT_IDX_RED_8 11
 #define BUT_IDX_MASK_RED_8 (1 << BUT_IDX_RED_8)
 
+// Botão ON/OFF - PD20
+#define BUT_PIO_ON_OFF PIOD
+#define BUT_PIO_ID_ON_OFF ID_PIOD
+#define BUT_IDX_ON_OFF 20
+#define BUT_IDX_MASK_ON_OFF (1 << BUT_IDX_ON_OFF)
+
 // Número de LEDs na fita
 #define LEDS_NUMBER 44
 
