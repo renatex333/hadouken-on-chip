@@ -728,6 +728,7 @@ static void task_joy(void *pvParameters) {
       printf("direcao: %c \n", direcao);
 	  while(apertado){
 		  envia_dado(direcao);
+		  vTaskDelay(100);
 	  }
     }
 
