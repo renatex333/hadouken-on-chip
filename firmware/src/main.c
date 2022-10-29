@@ -306,7 +306,6 @@ void io_init(void) {
     pio_set_debounce_filter(BUT_PIO_RED_8, BUT_IDX_MASK_RED_8, 120);
 
 
-
     pio_configure(BUT_PIO_BLUE_1, PIO_INPUT, BUT_IDX_MASK_BLUE_1, PIO_PULLUP | PIO_DEBOUNCE);
     pio_configure(BUT_PIO_BLUE_2, PIO_INPUT, BUT_IDX_MASK_BLUE_2, PIO_PULLUP | PIO_DEBOUNCE);
     pio_configure(BUT_PIO_BLUE_3, PIO_INPUT, BUT_IDX_MASK_BLUE_3, PIO_PULLUP | PIO_DEBOUNCE);
@@ -339,7 +338,6 @@ void io_init(void) {
     pio_enable_interrupt(BUT_PIO_RED_6, BUT_IDX_MASK_RED_6);
     pio_enable_interrupt(BUT_PIO_RED_7, BUT_IDX_MASK_RED_7);
     pio_enable_interrupt(BUT_PIO_RED_8, BUT_IDX_MASK_RED_8);
-
 
 
     pio_get_interrupt_status(BUT_PIO_BLUE_1);
@@ -626,56 +624,59 @@ void task_handshake(void) {
 
     // Task não deve retornar.
     while (1) {
-        if (xQueueReceive(xQueueOnOff, &on_off, (TickType_t) 500)) {
-            printf("cheguei");
-            if (on_off == '1') {
-                if (handshake == '1') {
-                    if (usart_is_tx_ready(USART_COM)) {
-                        printf("Enviando handshake \n");
-                        while (!usart_is_tx_ready(USART_COM)) {
-                            vTaskDelay(10 / portTICK_PERIOD_MS);
-                        }
-                        usart_write(USART_COM, 'P');
 
-                        while (!usart_is_tx_ready(USART_COM)) {
-                            vTaskDelay(10 / portTICK_PERIOD_MS);
-                        }
-                        usart_write(USART_COM, 'X');
-                    }
-
-                    if (!usart_read(USART_COM, &rx)) {
-                        if (rx == '1') {
-                            printf("handshake concluido \n");
-                            /*Criacao tasks dps do handshake */
-                            create_tasks();
-                            handshake = '0';
-                        }
-
-                    }
-                    vTaskDelay(10);
+        if (handshake == '1') {
+            if (usart_is_tx_ready(USART_COM)) {
+                printf("Enviando handshake \n");
+                while (!usart_is_tx_ready(USART_COM)) {
+                    vTaskDelay(10 / portTICK_PERIOD_MS);
                 }
-            } else {
-                printf("Controle desligado \n");
+                usart_write(USART_COM, 'P');
+
+                while (!usart_is_tx_ready(USART_COM)) {
+                    vTaskDelay(10 / portTICK_PERIOD_MS);
+                }
+                usart_write(USART_COM, 'X');
             }
 
+            if (!usart_read(USART_COM, &rx)) {
+                if (rx == '1') {
+                    printf("handshake concluido \n");
+                    /*Criacao tasks dps do handshake */
+                    create_tasks();
+                    handshake = '0';
+                }
 
+            }
+            vTaskDelay(10);
         }
+
+
     }
+}
+
 }
 
 void task_button_handler(void) {
     char botao = '0';
-    char on_off = '0';
+    char on_off;
     /* tarefas de um RTOS não devem retornar */
     for (;;) {
         /* verifica se chegou algum dado na queue, e espera por 0 ticks */
-        if (xQueueReceive(xQueueButton, &botao, (TickType_t) 0)) {
-            /* chegou novo valor, atualiza delay ! */
-            /* aqui eu poderia verificar se msg faz sentido (se esta no range certo)
-            */
-            /* converte ms -> ticks */
-            printf("botao: %c \n", botao);
-            envia_dado(botao);
+        if (xQueueReceive(xQueueOnOff, &on_off, (TickType_t) 500)) {
+            printf("cheguei");
+            if (on_off == '1') {
+                if (xQueueReceive(xQueueButton, &botao, (TickType_t) 0)) {
+                    /* chegou novo valor, atualiza delay ! */
+                    /* aqui eu poderia verificar se msg faz sentido (se esta no range certo)
+                    */
+                    /* converte ms -> ticks */
+                    printf("botao: %c \n", botao);
+                    envia_dado(botao);
+                }
+            } else {
+                printf("Controle desligado");
+            }
         }
         vTaskDelay(100);
     }
@@ -688,22 +689,28 @@ static void task_joy(void *pvParameters) {
     joy_init();
 
     char direcao = 'joy';
-
+    char on_off;
     /* tarefas de um RTOS não devem retornar */
     for (;;) {
-        /* verifica se chegou algum dado na queue, e espera por 0 ticks */
-        if (xQueueReceive(xQueueJoy, &direcao, (TickType_t) 0)) {
-            /* chegou novo valor, atualiza delay ! */
-            /* aqui eu poderia verificar se msg faz sentido (se esta no range certo)
-             */
-            /* converte ms -> ticks */
-            printf("direcao: %c \n", direcao);
-            while (apertado) {
-                envia_dado(direcao);
-                vTaskDelay(100);
+        if (xQueueReceive(xQueueOnOff, &on_off, (TickType_t) 500)) {
+            printf("cheguei");
+            if (on_off == '1') {
+                /* verifica se chegou algum dado na queue, e espera por 0 ticks */
+                if (xQueueReceive(xQueueJoy, &direcao, (TickType_t) 0)) {
+                    /* chegou novo valor, atualiza delay ! */
+                    /* aqui eu poderia verificar se msg faz sentido (se esta no range certo)
+                     */
+                    /* converte ms -> ticks */
+                    printf("direcao: %c \n", direcao);
+                    while (apertado) {
+                        envia_dado(direcao);
+                        vTaskDelay(100);
+                    }
+                }
+            } else {
+                printf("Controle desligado");
             }
         }
-
         /* suspende por delayMs */
         vTaskDelay(100);
     }
@@ -740,10 +747,17 @@ static void task_vol(void *pvParameters) {
     uint leitura;
 
     for (;;) {
-        if (xQueueReceive(xQueueVOL, &(leitura), 1000)) {
-            printf("Leitura Volume: %d \n", leitura);
-        } else {
-            printf("Nao chegou um novo dado em 1 segundo \n");
+        if (xQueueReceive(xQueueOnOff, &on_off, (TickType_t) 500)) {
+            printf("cheguei");
+            if (on_off == '1') {
+                if (xQueueReceive(xQueueVOL, &(leitura), 1000)) {
+                    printf("Leitura Volume: %d \n", leitura);
+                } else {
+                    printf("Nao chegou um novo dado em 1 segundo \n");
+                }
+            } else {
+                printf("Controle desligado");
+            }
         }
     }
 }
@@ -752,12 +766,20 @@ static void task_led(void *pvParameters) {
     char leds[LEDS_NUMBER];
     for (;;) {
         // Acende LEDs apenas se o botão for pressionado
-        if (xQueueReceive(xQueueLed, leds, 100)) {
-            taskENTER_CRITICAL();
-            LEDS_light_up(leds, LEDS_NUMBER);
-            taskEXIT_CRITICAL();
-            vTaskDelay(100);
-            clearLEDs();
+        if (xQueueReceive(xQueueOnOff, &on_off, (TickType_t) 500)) {
+            printf("cheguei");
+            if (on_off == '1') {
+                if (xQueueReceive(xQueueLed, leds, 100)) {
+                    taskENTER_CRITICAL();
+                    LEDS_light_up(leds, LEDS_NUMBER);
+                    taskEXIT_CRITICAL();
+                    vTaskDelay(100);
+                    clearLEDs();
+                }
+            }
+            else{
+                printf("Controle desligado");
+            }
         }
     }
 }
