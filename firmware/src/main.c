@@ -615,6 +615,11 @@ void task_bluetooth(void) {
     io_init();
     // Task não deve retornar.
     while (1) {
+        if (xQueueReceive(xQueueOnOff, &on_off, (TickType_t) 500)) {
+            printf("cheguei");
+            if (on_off == '0') {
+                envia_dado('p');
+            }
     }
 }
 
