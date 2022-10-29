@@ -193,6 +193,21 @@ void but_callback_red_8(void)
 	acende_leds();
 }
 
+void but_callback_start(void)
+{
+	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+	char button = '9';
+	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
+	acende_leds();
+}
+
+void but_callback_coin(void)
+{
+	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+	char button = '10';
+	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
+	acende_leds();
+}
 
 // handler do joystick
 
@@ -293,6 +308,8 @@ void io_init(void)
 	pmc_enable_periph_clk(BUT_PIO_ID_RED_6);
 	pmc_enable_periph_clk(BUT_PIO_ID_RED_7);
 	pmc_enable_periph_clk(BUT_PIO_ID_RED_8);
+	pmc_enable_periph_clk(BUT_PIO_ID_START);
+	pmc_enable_periph_clk(BUT_PIO_ID_COIN);
 
 	
 	// Configura Pinos
@@ -304,6 +321,8 @@ void io_init(void)
 	pio_set_debounce_filter(BUT_PIO_RED_6, BUT_IDX_MASK_RED_6, 120);
 	pio_set_debounce_filter(BUT_PIO_RED_7, BUT_IDX_MASK_RED_7, 120);
 	pio_set_debounce_filter(BUT_PIO_RED_8, BUT_IDX_MASK_RED_8, 120);
+	pio_set_debounce_filter(BUT_PIO_START, BUT_IDX_MASK_START, 120);
+	pio_set_debounce_filter(BUT_PIO_COIN, BUT_IDX_MASK_COIN, 120);
 
 		
 	pio_configure(BUT_PIO_BLUE_1, PIO_INPUT, BUT_IDX_MASK_BLUE_1, PIO_PULLUP | PIO_DEBOUNCE);
@@ -314,6 +333,9 @@ void io_init(void)
 	pio_configure(BUT_PIO_RED_6, PIO_INPUT, BUT_IDX_MASK_RED_6, PIO_PULLUP | PIO_DEBOUNCE);
 	pio_configure(BUT_PIO_RED_7, PIO_INPUT, BUT_IDX_MASK_RED_7, PIO_PULLUP | PIO_DEBOUNCE);
 	pio_configure(BUT_PIO_RED_8, PIO_INPUT, BUT_IDX_MASK_RED_8, PIO_PULLUP | PIO_DEBOUNCE);
+	pio_configure(BUT_PIO_START, PIO_INPUT, BUT_IDX_MASK_START, PIO_PULLUP | PIO_DEBOUNCE);
+	pio_configure(BUT_PIO_COIN, PIO_INPUT, BUT_IDX_MASK_COIN, PIO_PULLUP | PIO_DEBOUNCE);
+
 
 	// Configura interrupcao
 
@@ -325,6 +347,9 @@ void io_init(void)
 	pio_handler_set(BUT_PIO_RED_6, BUT_PIO_ID_RED_6, BUT_IDX_MASK_RED_6, PIO_IT_FALL_EDGE, but_callback_red_6);
 	pio_handler_set(BUT_PIO_RED_7, BUT_PIO_ID_RED_7, BUT_IDX_MASK_RED_7, PIO_IT_FALL_EDGE, but_callback_red_7);
 	pio_handler_set(BUT_PIO_RED_8, BUT_PIO_ID_RED_8, BUT_IDX_MASK_RED_8, PIO_IT_FALL_EDGE, but_callback_red_8);
+	pio_handler_set(BUT_PIO_START, BUT_PIO_ID_START, BUT_IDX_MASK_START, PIO_IT_FALL_EDGE, but_callback_start);
+	pio_handler_set(BUT_PIO_COIN, BUT_PIO_ID_COIN, BUT_IDX_MASK_COIN, PIO_IT_FALL_EDGE, but_callback_coin);
+
 
 
 	// Ativa interrupcao
@@ -337,6 +362,9 @@ void io_init(void)
 	pio_enable_interrupt(BUT_PIO_RED_6, BUT_IDX_MASK_RED_6);
 	pio_enable_interrupt(BUT_PIO_RED_7, BUT_IDX_MASK_RED_7);
 	pio_enable_interrupt(BUT_PIO_RED_8, BUT_IDX_MASK_RED_8);
+	pio_enable_interrupt(BUT_PIO_START, BUT_IDX_MASK_START);
+	pio_enable_interrupt(BUT_PIO_COIN, BUT_IDX_MASK_COIN);
+
 
 
 	pio_get_interrupt_status(BUT_PIO_BLUE_1);
@@ -347,6 +375,8 @@ void io_init(void)
 	pio_get_interrupt_status(BUT_PIO_RED_6);
 	pio_get_interrupt_status(BUT_PIO_RED_7);
 	pio_get_interrupt_status(BUT_PIO_RED_8);
+	pio_get_interrupt_status(BUT_PIO_START);
+	pio_get_interrupt_status(BUT_PIO_COIN);
 
 	// Configura NVIC
 
@@ -358,6 +388,8 @@ void io_init(void)
 	NVIC_EnableIRQ(BUT_PIO_ID_RED_6);
 	NVIC_EnableIRQ(BUT_PIO_ID_RED_7);
 	NVIC_EnableIRQ(BUT_PIO_ID_RED_8);
+	NVIC_EnableIRQ(BUT_PIO_ID_START);
+	NVIC_EnableIRQ(BUT_PIO_ID_COIN);
 
 	NVIC_SetPriority(BUT_PIO_ID_BLUE_1, 4);
 	NVIC_SetPriority(BUT_PIO_ID_BLUE_2, 4);
@@ -367,6 +399,9 @@ void io_init(void)
 	NVIC_SetPriority(BUT_PIO_ID_RED_6, 4);
 	NVIC_SetPriority(BUT_PIO_ID_RED_7, 4);
 	NVIC_SetPriority(BUT_PIO_ID_RED_8, 4);
+	NVIC_SetPriority(BUT_PIO_ID_START, 4);
+	NVIC_SetPriority(BUT_PIO_ID_COIN, 4);
+	
 
 	
 }
