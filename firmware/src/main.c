@@ -89,7 +89,6 @@ static void LED_init(void);
 void LEDS_light_up(char flag, int n);
 void envia_dado(char comando);
 void create_tasks(void);
-void acende_leds(void);
 
 /************************************************************************/
 /* RTOS application HOOK                                                */
@@ -139,21 +138,18 @@ void but_callback_blue_1(void)
 	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 	char button = '1';
 	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
-	acende_leds();
 }
 void but_callback_blue_2(void)
 {
 	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 	char button = '2';
 	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
-	acende_leds();
 }
 void but_callback_blue_3(void)
 {
 	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 	char button = '3';
 	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
-	acende_leds();
 }
 void but_callback_blue_4(void)
 {
@@ -166,28 +162,24 @@ void but_callback_red_5(void)
 	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 	char button = '5';
 	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
-	acende_leds();
 }
 void but_callback_red_6(void)
 {
 	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 	char button = '6';
 	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
-	acende_leds();
 }
 void but_callback_red_7(void)
 {
 	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 	char button = '7';
 	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
-	acende_leds();
 }
 void but_callback_red_8(void)
 {
 	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 	char button = '8';
 	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
-	acende_leds();
 }
 
 void but_callback_start(void)
@@ -195,15 +187,13 @@ void but_callback_start(void)
 	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 	char button = '9';
 	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
-	acende_leds();
 }
 
 void but_callback_coin(void)
 {
 	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
-	char button = 'l';
+	char button = 'r';
 	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
-	acende_leds();
 }
 
 // handler do joystick
@@ -215,13 +205,12 @@ void joy1_callback(void)
 		// PINO == 1 --> Borda de subida
 		apertado_joy1 = 0;
 		
-		} else {
+	} else {
 		// PINO == 0 --> Borda de descida
 		BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 		char direcao = 'd';
 		xQueueSendFromISR(xQueueJoy, &direcao, &xHigherPriorityTaskWoken);
 		apertado_joy1 = 1;
-		acende_leds();
 	}
 	
 }
@@ -233,13 +222,12 @@ void joy2_callback(void)
 		// PINO == 1 --> Borda de subida
 		apertado_joy2 = 0;
 		
-		} else {
+	} else {
 		// PINO == 0 --> Borda de descida
 		BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 		char direcao = 's';
 		xQueueSendFromISR(xQueueJoy, &direcao, &xHigherPriorityTaskWoken);
 		apertado_joy2 = 1;
-		acende_leds();
 	}
 }
 
@@ -250,13 +238,12 @@ void joy3_callback(void)
 		// PINO == 1 --> Borda de subida
 		apertado_joy3 = 0;
 		
-		} else {
+	} else {
 		// PINO == 0 --> Borda de descida
 		BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 		char direcao = 'a';
 		xQueueSendFromISR(xQueueJoy, &direcao, &xHigherPriorityTaskWoken);
 		apertado_joy3 = 1;
-		acende_leds();
 	}
 }
 
@@ -267,13 +254,12 @@ void joy4_callback(void)
 		// PINO == 1 --> Borda de subida
 		apertado_joy4 = 0;
 		
-		} else {
+	} else {
 		// PINO == 0 --> Borda de descida
 		BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 		char direcao = 'w';
 		xQueueSendFromISR(xQueueJoy, &direcao, &xHigherPriorityTaskWoken);
 		apertado_joy4 = 1;
-		acende_leds();
 	}
 }
 
@@ -631,20 +617,12 @@ void LEDS_light_up(char flag, int n) {
 		for(int i = 0; i < n; i++) {
 			colorBLUE();
 		}
+	} else if (flag == 'w') {
+		for(int i = 0; i < n; i++) {
+			colorWHITE();
+		}
 	}
-	
 }
-
-void acende_leds(){
-	char leds[LEDS_NUMBER];
-	for (int i = 0; i < LEDS_NUMBER; i++) {
-		leds[i] = 1;
-	}
-	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
-	xQueueSendFromISR(xQueueLed, &leds, &xHigherPriorityTaskWoken);
-}
-
-
 
 /************************************************************************/
 /* TASKS                                                                */
@@ -663,7 +641,7 @@ void task_bluetooth(void)
 	
 	// Task não deve retornar.
 	while (1){
-		}
+	}
 }
 
 void task_handshake(void)
@@ -709,38 +687,41 @@ void task_button_handler(void)
 
 	/* tarefas de um RTOS não devem retornar */
 	for (;;) {
-	/* verifica se chegou algum dado na queue, e espera por 0 ticks */
-	if (xQueueReceive(xQueueButton, &botao, (TickType_t) 0)) {
-		/* chegou novo valor, atualiza delay ! */
-		/* aqui eu poderia verificar se msg faz sentido (se esta no range certo)
-		*/
-		/* converte ms -> ticks */
-		printf("botao: %c \n", botao);
-		// Flag 'r' e 'b' servem para indicar que os LEDs devem acender vermelho ou azul respectivamente
-		if (botao == '1' || botao == '2' || botao == '3' || botao == '4' || botao == '5') {
-			flag = 'r';
-		} else {
-			flag = 'b';
+		/* verifica se chegou algum dado na queue, e espera por 0 ticks */
+		if (xQueueReceive(xQueueButton, &botao, (TickType_t) 0)) {
+			/* chegou novo valor, atualiza delay ! */
+			/* aqui eu poderia verificar se msg faz sentido (se esta no range certo)
+			*/
+			/* converte ms -> ticks */
+			printf("botao: %c \n", botao);
+			// Flag 'r', 'b' e 'w' servem para indicar que os LEDs devem acender vermelho, azul ou branco, respectivamente
+			if (botao == '1' || botao == '2' || botao == '3' || botao == '4') {
+				flag = 'r';
+			} else if (botao == '5' || botao == '6' || botao == '7' || botao == '8'){
+				flag = 'b';
+			} else {
+				flag = 'w';
+			}
+			envia_dado(botao);
+			vTaskDelay(100);
+			taskENTER_CRITICAL();
+			LEDS_light_up(flag, LEDS_NUMBER);
+			taskEXIT_CRITICAL();
+			vTaskDelay(100);
 		}
-		taskENTER_CRITICAL();
-		LEDS_light_up(flag, LEDS_NUMBER);
-		taskEXIT_CRITICAL();
-		vTaskDelay(100);
-		envia_dado(botao);
-		vTaskDelay(100);
-	}
-	//else{
-		//printf("botao: 0 \n",);
-		//envia_dado('0');
-	//}
-
+		//else{
+			//printf("botao: 0 \n",);
+			//envia_dado('0');
+		//}
 	}
 }
 
 static void task_joy(void *pvParameters) {
   joy_init();
 
-  char direcao = 'joy';
+	// Acho que criar a variável como 'joy' acaba criando um array direcao[4] = {'j','o','y','\0'}, mais safe criar como 'X'
+	//char direcao = 'joy';
+  char direcao = 'X';
 
   /* tarefas de um RTOS não devem retornar */
   for (;;) {
@@ -795,16 +776,16 @@ static void task_joy(void *pvParameters) {
           envia_dado(direcao);
           vTaskDelay(50);
         }
-		  
         printf("direcao: %c \n", direcao);
-        if(!apertado_joy1 && !apertado_joy2 && !apertado_joy3 && !apertado_joy4){
-          envia_dado('0');
-          vTaskDelay(50);
-          printf("direcao: %c \n", direcao);
-        }
+			}
+      if(!apertado_joy1 && !apertado_joy2 && !apertado_joy3 && !apertado_joy4){
+        envia_dado('0');
+        vTaskDelay(50);
+        printf("direcao: %c \n", direcao);
+				clearLEDs();
       }
-      clearLEDs();
-  }
+    }
+	}
 }
 
 void vTimerCallback(TimerHandle_t xTimer) {
@@ -867,12 +848,6 @@ static void task_vol(void *pvParameters) {
 }
 
 void create_tasks(){
-	/* Create task led*/
-	if (xTaskCreate(task_led, "LED", TASK_LED_STACK_SIZE, NULL,
-	TASK_LED_STACK_PRIORITY, NULL) != pdPASS) {
-		printf("Falhou ao criar a task_led \r\n");
-	}
-	
 	/* Create task joystick */
 	if (xTaskCreate(task_joy, "JOY",TASK_JOY_STACK_SIZE, NULL,
 	TASK_JOY_STACK_PRIORITY, NULL) != pdPASS) {
