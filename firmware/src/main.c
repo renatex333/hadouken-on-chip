@@ -54,9 +54,6 @@ QueueHandle_t xQueueButton;
 // Queue do Joystick
 QueueHandle_t xQueueJoy;
 
-// Queue da fita de led
-QueueHandle_t xQueueLed;
-
 /************************************************************************/
 /* prototypes                                                           */
 /************************************************************************/
@@ -725,6 +722,10 @@ void task_button_handler(void)
 		} else {
 			flag = 'b';
 		}
+		taskENTER_CRITICAL();
+		LEDS_light_up(flag, LEDS_NUMBER);
+		taskEXIT_CRITICAL();
+		vTaskDelay(100);
 		envia_dado(botao);
 		vTaskDelay(100);
 	}
@@ -749,60 +750,61 @@ static void task_joy(void *pvParameters) {
       /* aqui eu poderia verificar se msg faz sentido (se esta no range certo)
        */
       /* converte ms -> ticks */
-	  
+      
+			// Acende os LEDs antes do while
+			// Flag 'g' serve para indicar que os LEDs devem acender verde
+			taskENTER_CRITICAL();
+			LEDS_light_up('g', LEDS_NUMBER);
+			taskEXIT_CRITICAL();
+	    
       while(apertado_joy1 || apertado_joy2 || apertado_joy3 || apertado_joy4){
-		  // Flag 'g' serve para indicar que os LEDs devem acender verde
-		  //dsaw
-		  if(apertado_joy1 && !apertado_joy2 && !apertado_joy3 && !apertado_joy4){
-			  envia_dado(direcao);
-			  vTaskDelay(50);			  
-		  }
-		  if(apertado_joy2 && !apertado_joy1 && !apertado_joy3 && !apertado_joy4){
-			  envia_dado(direcao);
-			  vTaskDelay(50);
-		  }
-		  if(apertado_joy3 && !apertado_joy2 && !apertado_joy1 && !apertado_joy4){
-			  envia_dado(direcao);
-			  vTaskDelay(50);
-		  }
-		  if(apertado_joy4 && !apertado_joy2 && !apertado_joy3 && !apertado_joy1){
-			  envia_dado(direcao);
-			  vTaskDelay(50);
-		  }
-		  else if(apertado_joy1 && apertado_joy2){
-			  direcao = 'c';
-			  envia_dado(direcao);
-			  vTaskDelay(50);
-			  if(!apertado_joy1 || !apertado_joy2){
-				  
-			  }
-		  }
-		  else if(apertado_joy1 && apertado_joy4){
-			  direcao = 'e';
-			  envia_dado(direcao);
-			  vTaskDelay(50);
-		  }
-		  else if(apertado_joy3 && apertado_joy2){
-			  direcao = 'z';
-			  envia_dado(direcao);
-			  vTaskDelay(50);
-		  }
-		  else if(apertado_joy3 && apertado_joy4){
-			  direcao = 'q';
-			  envia_dado(direcao);
-			  vTaskDelay(50);
-		  }
+		    //wasd
+		    if(apertado_joy1 && !apertado_joy2 && !apertado_joy3 && !apertado_joy4){
+			    envia_dado(direcao);
+			    vTaskDelay(50);			  
+		    }
+		    if(apertado_joy2 && !apertado_joy1 && !apertado_joy3 && !apertado_joy4){
+			    envia_dado(direcao);
+			    vTaskDelay(50);
+		    }
+        if(apertado_joy3 && !apertado_joy2 && !apertado_joy1 && !apertado_joy4){
+          envia_dado(direcao);
+          vTaskDelay(50);
+        }
+        if(apertado_joy4 && !apertado_joy2 && !apertado_joy3 && !apertado_joy1){
+          envia_dado(direcao);
+          vTaskDelay(50);
+        }
+        if(apertado_joy1 && apertado_joy2) {
+          direcao = 'c';
+          envia_dado(direcao);
+          vTaskDelay(50);
+		    }
+		    if(apertado_joy1 && apertado_joy4){
+          direcao = 'e';
+          envia_dado(direcao);
+          vTaskDelay(50);
+        }
+		    if(apertado_joy3 && apertado_joy2){
+          direcao = 'z';
+          envia_dado(direcao);
+          vTaskDelay(50);
+        }
+		    if(apertado_joy3 && apertado_joy4){
+          direcao = 'q';
+          envia_dado(direcao);
+          vTaskDelay(50);
+        }
 		  
-		  printf("direcao: %c \n", direcao);
+        printf("direcao: %c \n", direcao);
+        if(!apertado_joy1 && !apertado_joy2 && !apertado_joy3 && !apertado_joy4){
+          envia_dado('0');
+          vTaskDelay(50);
+          printf("direcao: %c \n", direcao);
+        }
       }
-	  if(!apertado_joy1 && !apertado_joy2 && !apertado_joy3 && !apertado_joy4){
-		  envia_dado('0');
-		  vTaskDelay(50);
-		  printf("direcao: %c \n", direcao);
-	  }
-	  
-    }
-   }
+      clearLEDs();
+  }
 }
 
 void vTimerCallback(TimerHandle_t xTimer) {
@@ -864,20 +866,6 @@ static void task_vol(void *pvParameters) {
   }
 }
 
-static void task_led(void *pvParameters) {
-	char leds[LEDS_NUMBER];
-	for(;;){
-		// Acende LEDs apenas se o botão for pressionado
-		if (xQueueReceive(xQueueLed, &leds, 100)) {
-			taskENTER_CRITICAL();
-			LEDS_light_up('g', LEDS_NUMBER);
-			taskEXIT_CRITICAL();
-			vTaskDelay(50);
-			clearLEDs();
-		}
-	}
-}
-
 void create_tasks(){
 	/* Create task led*/
 	if (xTaskCreate(task_led, "LED", TASK_LED_STACK_SIZE, NULL,
@@ -908,8 +896,6 @@ void create_tasks(){
 	} else {
 		printf("task vol \r\n");
 	}
-	
-	
 }
 
 /************************************************************************/
@@ -941,13 +927,7 @@ int main(void)
 	xQueueVOL = xQueueCreate(100, sizeof(uint));
 	if (xQueueVOL == NULL) {
 		printf("Erro ao criar fila de volume \n");
-	}
-	
-	xQueueLed = xQueueCreate(20, sizeof(char));
-	if (xQueueLed == NULL){
-		printf("Erro ao criar fila dos Leds \n");
-	}
-	
+	}	
 
 	
 	/* Create task bluetooth */
