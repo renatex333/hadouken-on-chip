@@ -103,33 +103,72 @@ class SerialControllerInterface:
             self.j.set_button(self.mapping.set_button['H'], 0)
             time.sleep(0.1)
         
-        elif data == b'w':
-            logging.info("Sending press up")
-            self.j.set_button(self.mapping.set_button['I'], 1)
-            time.sleep(0.1)
+        elif data == b'0':
+            logging.info("Sending press para")
             self.j.set_button(self.mapping.set_button['I'], 0)
-            time.sleep(0.1)
-
-        elif data == b's':
-            logging.info("Sending press down")
-            self.j.set_button(self.mapping.set_button['J'], 1)
-            time.sleep(0.1)
             self.j.set_button(self.mapping.set_button['J'], 0)
-            time.sleep(0.1)
-
-        elif data == b'a':
-            logging.info("Sending press left")
-            self.j.set_button(self.mapping.set_button['K'], 1)
-            time.sleep(0.1)
+            self.j.set_button(self.mapping.set_button['L'], 0)
             self.j.set_button(self.mapping.set_button['K'], 0)
             time.sleep(0.1)
 
-        elif data == b'd':
+        if data == b'w':
+            logging.info("Sending press up")
+            self.j.set_button(self.mapping.set_button['I'], 1)
+            time.sleep(0.1)
+            
+
+        if data == b's':
+            logging.info("Sending press down")
+            self.j.set_button(self.mapping.set_button['J'], 1)
+            time.sleep(0.1)
+
+        
+
+        if data == b'a':
+            logging.info("Sending press left")
+            self.j.set_button(self.mapping.set_button['K'], 1)
+            time.sleep(0.1)
+           
+
+
+        if data == b'd':
             logging.info("Sending press right")
             self.j.set_button(self.mapping.set_button['L'], 1)
             time.sleep(0.1)
-            self.j.set_button(self.mapping.set_button['L'], 0)
+
+        elif data == b'c':
+            logging.info("Sending press right down")
+            self.j.set_button(self.mapping.set_button['L'], 1)
+            self.j.set_button(self.mapping.set_button['J'], 1)
+            self.j.set_button(self.mapping.set_button['K'], 0)
+            self.j.set_button(self.mapping.set_button['I'], 0)
             time.sleep(0.1)
+        
+        elif data == b'e':
+            logging.info("Sending press right up")
+            self.j.set_button(self.mapping.set_button['L'], 1)
+            self.j.set_button(self.mapping.set_button['I'], 1)
+            self.j.set_button(self.mapping.set_button['K'], 0)
+            self.j.set_button(self.mapping.set_button['J'], 0)
+            time.sleep(0.1)
+        
+
+        elif data == b'z':
+            logging.info("Sending press left down")
+            self.j.set_button(self.mapping.set_button['K'], 1)
+            self.j.set_button(self.mapping.set_button['J'], 1)
+            self.j.set_button(self.mapping.set_button['L'], 0)
+            self.j.set_button(self.mapping.set_button['I'], 0)
+            time.sleep(0.1)
+
+        elif data == b'q':
+            logging.info("Sending press left up")
+            self.j.set_button(self.mapping.set_button['K'], 1)
+            self.j.set_button(self.mapping.set_button['I'], 1)
+            self.j.set_button(self.mapping.set_button['L'], 0)
+            self.j.set_button(self.mapping.set_button['J'], 0)
+            time.sleep(0.1)
+        
 
         elif data == b'l':
             logging.info("Volume set 0%")
