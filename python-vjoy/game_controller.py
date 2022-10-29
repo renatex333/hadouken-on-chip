@@ -11,7 +11,7 @@ from comtypes import CLSCTX_ALL
 
 class MyControllerMap:
     def __init__(self):
-        self.set_button = {'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E' : 5, 'F' : 6, 'G' : 7, 'H': 8, 'I': 9, 'J': 10, 'K': 11, 'L': 12}
+        self.set_button = {'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E' : 5, 'F' : 6, 'G' : 7, 'H': 8, 'I': 9, 'J': 10, 'K': 11, 'L': 12, 'M': 13, 'N':14}
         # g = 100%; h = 75%; j = 50%; k = 25%; l = 0%;
         # Baseada em uma escala de decibéis
         self.set_volume = {'l': -51, 'k': -20, 'j': -10.015, 'h': -4, 'g': 0}
@@ -101,6 +101,20 @@ class SerialControllerInterface:
             self.j.set_button(self.mapping.set_button['H'], 1)
             time.sleep(0.1)
             self.j.set_button(self.mapping.set_button['H'], 0)
+            time.sleep(0.1)
+
+        elif data == b'9':
+            logging.info("Sending press 9")
+            self.j.set_button(self.mapping.set_button['M'], 1)
+            time.sleep(0.1)
+            self.j.set_button(self.mapping.set_button['M'], 0)
+            time.sleep(0.1)
+        
+        elif data == b'l':
+            logging.info("Sending press 10")
+            self.j.set_button(self.mapping.set_button['N'], 1)
+            time.sleep(0.1)
+            self.j.set_button(self.mapping.set_button['N'], 0)
             time.sleep(0.1)
         
         elif data == b'0':

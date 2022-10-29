@@ -204,7 +204,7 @@ void but_callback_start(void)
 void but_callback_coin(void)
 {
 	BaseType_t xHigherPriorityTaskWoken = pdTRUE;
-	char button = '10';
+	char button = 'l';
 	xQueueSendFromISR(xQueueButton, &button, &xHigherPriorityTaskWoken);
 	acende_leds();
 }
