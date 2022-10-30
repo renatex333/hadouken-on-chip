@@ -92,6 +92,37 @@
 #define JOY4_IDX 12
 #define JOY4_IDX_MASK (1 << JOY4_IDX)
 
+
+/************************************************************************/
+/* RTOS                                                                 */
+/************************************************************************/
+
+#define TASK_BLUETOOTH_STACK_SIZE (4096 / sizeof(portSTACK_TYPE))
+#define TASK_BLUETOOTH_STACK_PRIORITY (tskIDLE_PRIORITY)
+
+// task Volume Handler
+#define TASK_VOL_STACK_SIZE (1024 * 10 / sizeof(portSTACK_TYPE))
+#define TASK_VOL_STACK_PRIORITY (tskIDLE_PRIORITY)
+
+// task Button Handler
+#define TASK_BUTTON_HANDLER_STACK_SIZE (4096 / sizeof(portSTACK_TYPE))
+#define TASK_BUTTON_HANDLER_STACK_PRIORITY (tskIDLE_PRIORITY)
+
+// task Joystick Handler
+#define TASK_JOY_STACK_SIZE (4096 / sizeof(portSTACK_TYPE))
+#define TASK_JOY_STACK_PRIORITY (tskIDLE_PRIORITY)
+
+// task Handshake
+#define TASK_HANDSHAKE_STACK_SIZE (4096 / sizeof(portSTACK_TYPE))
+#define TASK_HANDSHAKE_STACK_PRIORITY (tskIDLE_PRIORITY)
+
+// task Led
+#define TASK_LED_STACK_SIZE (4096*8 / sizeof(portSTACK_TYPE))
+#define TASK_LED_STACK_PRIORITY        (tskIDLE_PRIORITY)
+
+
+
+
 // #endregion
 
 // usart (bluetooth ou serial)

@@ -13,32 +13,6 @@
 #include "ledHelpers/ledColors.h"
 #include "helpers/defines.h"
 
-/************************************************************************/
-/* RTOS                                                                 */
-/************************************************************************/
-
-#define TASK_BLUETOOTH_STACK_SIZE (4096 / sizeof(portSTACK_TYPE))
-#define TASK_BLUETOOTH_STACK_PRIORITY (tskIDLE_PRIORITY)
-
-// task Volume Handler
-#define TASK_VOL_STACK_SIZE (1024 * 10 / sizeof(portSTACK_TYPE))
-#define TASK_VOL_STACK_PRIORITY (tskIDLE_PRIORITY)
-
-// task Button Handler
-#define TASK_BUTTON_HANDLER_STACK_SIZE (4096 / sizeof(portSTACK_TYPE))
-#define TASK_BUTTON_HANDLER_STACK_PRIORITY (tskIDLE_PRIORITY)
-
-// task Joystick Handler
-#define TASK_JOY_STACK_SIZE (4096 / sizeof(portSTACK_TYPE))
-#define TASK_JOY_STACK_PRIORITY (tskIDLE_PRIORITY)
-
-// task Handshake
-#define TASK_HANDSHAKE_STACK_SIZE (4096 / sizeof(portSTACK_TYPE))
-#define TASK_HANDSHAKE_STACK_PRIORITY (tskIDLE_PRIORITY)
-
-// task Led
-#define TASK_LED_STACK_SIZE (4096*8 / sizeof(portSTACK_TYPE))
-#define TASK_LED_STACK_PRIORITY        (tskIDLE_PRIORITY)
 
 /************************************************************************/
 /* recursos RTOS                                                        */
@@ -615,11 +589,15 @@ void task_bluetooth(void) {
     io_init();
     // Task não deve retornar.
     while (1) {
-        if (xQueueReceive(xQueueOnOff, &on_off, (TickType_t) 500)) {
-            printf("cheguei");
+        if (xQueueReceive(xQueueOnOff, &on_off, portMAX_DELAY)) {
+        
             if (on_off == '0') {
-                envia_dado('p');
+                envia_dado('p'); // desligado
             }
+            if (on_off == '1') {
+                envia_dado('o'); // ligado
+            }
+        }
     }
 }
 
@@ -632,7 +610,7 @@ void task_handshake(void) {
 
         if (handshake == '1') {
             if (usart_is_tx_ready(USART_COM)) {
-                printf("Enviando handshake \n");
+                //printf("Enviando handshake \n");
                 while (!usart_is_tx_ready(USART_COM)) {
                     vTaskDelay(10 / portTICK_PERIOD_MS);
                 }
@@ -660,7 +638,6 @@ void task_handshake(void) {
     }
 }
 
-}
 
 void task_button_handler(void) {
     char botao = '0';
@@ -668,9 +645,11 @@ void task_button_handler(void) {
     /* tarefas de um RTOS não devem retornar */
     for (;;) {
         /* verifica se chegou algum dado na queue, e espera por 0 ticks */
-        if (xQueueReceive(xQueueOnOff, &on_off, (TickType_t) 500)) {
-            printf("cheguei");
-            if (on_off == '1') {
+        if (xQueueReceive(xQueueOnOff, &on_off, portMAX_DELAY)) {
+            printf("%c:",on_off);
+			if (on_off == '1') {
+
+				printf("controle ligado \n");
                 if (xQueueReceive(xQueueButton, &botao, (TickType_t) 0)) {
                     /* chegou novo valor, atualiza delay ! */
                     /* aqui eu poderia verificar se msg faz sentido (se esta no range certo)
@@ -680,7 +659,7 @@ void task_button_handler(void) {
                     envia_dado(botao);
                 }
             } else {
-                printf("Controle desligado");
+                printf("Controle desligado\n");
             }
         }
         vTaskDelay(100);
@@ -697,8 +676,8 @@ static void task_joy(void *pvParameters) {
     char on_off;
     /* tarefas de um RTOS não devem retornar */
     for (;;) {
-        if (xQueueReceive(xQueueOnOff, &on_off, (TickType_t) 500)) {
-            printf("cheguei");
+        if (xQueueReceive(xQueueOnOff, &on_off, portMAX_DELAY) {
+            
             if (on_off == '1') {
                 /* verifica se chegou algum dado na queue, e espera por 0 ticks */
                 if (xQueueReceive(xQueueJoy, &direcao, (TickType_t) 0)) {
@@ -781,8 +760,7 @@ static void task_led(void *pvParameters) {
                     vTaskDelay(100);
                     clearLEDs();
                 }
-            }
-            else{
+            } else {
                 printf("Controle desligado");
             }
         }
@@ -798,13 +776,7 @@ void create_tasks() {
         printf("task joy \r\n");
     }
 
-    /* Create task to handle button */
-    if (xTaskCreate(task_button_handler, "BUT", TASK_BUTTON_HANDLER_STACK_SIZE, NULL,
-                    TASK_BUTTON_HANDLER_STACK_PRIORITY, NULL) != pdPASS) {
-        printf("Falhou ao criar BUT task\r\n");
-    } else {
-        printf("task but \r\n");
-    }
+
 
     if (xTaskCreate(task_vol, "VOL", TASK_VOL_STACK_SIZE, NULL,
                     TASK_VOL_STACK_PRIORITY, NULL) != pdPASS) {
@@ -817,6 +789,15 @@ void create_tasks() {
                     TASK_LED_STACK_PRIORITY, NULL) != pdPASS) {
         printf("Falhou ao criar a task_led \r\n");
     }
+
+	/* Create task to handle button */
+	if (xTaskCreate(task_button_handler, "BUT", TASK_BUTTON_HANDLER_STACK_SIZE, NULL,
+	TASK_BUTTON_HANDLER_STACK_PRIORITY, NULL) != pdPASS) {
+		printf("Falhou ao criar BUT task\r\n");
+		} else {
+		printf("task but \r\n");
+	}
+
 }
 
 /************************************************************************/
@@ -865,6 +846,8 @@ int main(void) {
     } else {
         printf("task bluetooth \r\n");
     }
+
+    
 
     /* Create task Handshake */
     if (xTaskCreate(task_handshake, "BLT", TASK_HANDSHAKE_STACK_SIZE, NULL,
