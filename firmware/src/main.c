@@ -1,9 +1,9 @@
 /************************************************************************
- * 5 semestre - Eng. da Computao - Insper
- *
- * Projeto de Computação Embarcada
- * Por: Lucas, Matheus e Renato
- */
+* 5 semestre - Eng. da Computao - Insper
+*
+* Projeto de Computação Embarcada
+* Por: Lucas, Matheus e Renato
+*/
 
 #include <asf.h>
 #include "conf_board.h"
@@ -59,7 +59,7 @@ QueueHandle_t xQueueJoy;
 /************************************************************************/
 
 extern void vApplicationStackOverflowHook(xTaskHandle *pxTask,
-										  signed char *pcTaskName);
+signed char *pcTaskName);
 extern void vApplicationIdleHook(void);
 extern void vApplicationTickHook(void);
 extern void vApplicationMallocFailedHook(void);
@@ -96,12 +96,12 @@ void create_tasks(void);
 
 /* Called if stack overflow during execution */
 extern void vApplicationStackOverflowHook(xTaskHandle *pxTask,
-										  signed char *pcTaskName)
+signed char *pcTaskName)
 {
 	printf("stack overflow %x %s\r\n", pxTask, (portCHAR *)pcTaskName);
 	/* If the parameters have been corrupted then inspect pxCurrentTCB to
-	 * identify which task has overflowed its stack.
-	 */
+	* identify which task has overflowed its stack.
+	*/
 	for (;;)
 	{
 	}
@@ -205,7 +205,7 @@ void joy1_callback(void)
 		// PINO == 1 --> Borda de subida
 		apertado_joy1 = 0;
 		
-	} else {
+		} else {
 		// PINO == 0 --> Borda de descida
 		BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 		char direcao = 'd';
@@ -222,7 +222,7 @@ void joy2_callback(void)
 		// PINO == 1 --> Borda de subida
 		apertado_joy2 = 0;
 		
-	} else {
+		} else {
 		// PINO == 0 --> Borda de descida
 		BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 		char direcao = 's';
@@ -238,7 +238,7 @@ void joy3_callback(void)
 		// PINO == 1 --> Borda de subida
 		apertado_joy3 = 0;
 		
-	} else {
+		} else {
 		// PINO == 0 --> Borda de descida
 		BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 		char direcao = 'a';
@@ -254,7 +254,7 @@ void joy4_callback(void)
 		// PINO == 1 --> Borda de subida
 		apertado_joy4 = 0;
 		
-	} else {
+		} else {
 		// PINO == 0 --> Borda de descida
 		BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 		char direcao = 'w';
@@ -307,7 +307,7 @@ void io_init(void)
 	pio_set_debounce_filter(BUT_PIO_START, BUT_IDX_MASK_START, 120);
 	pio_set_debounce_filter(BUT_PIO_COIN, BUT_IDX_MASK_COIN, 120);
 
-		
+	
 	pio_configure(BUT_PIO_BLUE_1, PIO_INPUT, BUT_IDX_MASK_BLUE_1, PIO_PULLUP | PIO_DEBOUNCE);
 	pio_configure(BUT_PIO_BLUE_2, PIO_INPUT, BUT_IDX_MASK_BLUE_2, PIO_PULLUP | PIO_DEBOUNCE);
 	pio_configure(BUT_PIO_BLUE_3, PIO_INPUT, BUT_IDX_MASK_BLUE_3, PIO_PULLUP | PIO_DEBOUNCE);
@@ -433,48 +433,48 @@ void joy_init(void)
 }
 
 static void config_AFEC_pot(Afec *afec, uint32_t afec_id, uint32_t afec_channel,
-                            afec_callback_t callback) {
-  /*************************************
-   * Ativa e configura AFEC
-   *************************************/
-  /* Ativa AFEC - 0 */
-  afec_enable(afec);
+afec_callback_t callback) {
+	/*************************************
+	* Ativa e configura AFEC
+	*************************************/
+	/* Ativa AFEC - 0 */
+	afec_enable(afec);
 
-  /* struct de configuracao do AFEC */
-  struct afec_config afec_cfg;
+	/* struct de configuracao do AFEC */
+	struct afec_config afec_cfg;
 
-  /* Carrega parametros padrao */
-  afec_get_config_defaults(&afec_cfg);
+	/* Carrega parametros padrao */
+	afec_get_config_defaults(&afec_cfg);
 
-  /* Configura AFEC */
-  afec_init(afec, &afec_cfg);
+	/* Configura AFEC */
+	afec_init(afec, &afec_cfg);
 
-  /* Configura trigger por software */
-  afec_set_trigger(afec, AFEC_TRIG_SW);
+	/* Configura trigger por software */
+	afec_set_trigger(afec, AFEC_TRIG_SW);
 
-  /*** Configuracao específica do canal AFEC ***/
-  struct afec_ch_config afec_ch_cfg;
-  afec_ch_get_config_defaults(&afec_ch_cfg);
-  afec_ch_cfg.gain = AFEC_GAINVALUE_0;
-  afec_ch_set_config(afec, afec_channel, &afec_ch_cfg);
+	/*** Configuracao específica do canal AFEC ***/
+	struct afec_ch_config afec_ch_cfg;
+	afec_ch_get_config_defaults(&afec_ch_cfg);
+	afec_ch_cfg.gain = AFEC_GAINVALUE_0;
+	afec_ch_set_config(afec, afec_channel, &afec_ch_cfg);
 
-  /*
-  * Calibracao:
-  * Because the internal ADC offset is 0x200, it should cancel it and shift
-  down to 0.
-  */
-  afec_channel_set_analog_offset(afec, afec_channel, 0x200);
+	/*
+	* Calibracao:
+	* Because the internal ADC offset is 0x200, it should cancel it and shift
+	down to 0.
+	*/
+	afec_channel_set_analog_offset(afec, afec_channel, 0x200);
 
-  /***  Configura sensor de temperatura ***/
-  struct afec_temp_sensor_config afec_temp_sensor_cfg;
+	/***  Configura sensor de temperatura ***/
+	struct afec_temp_sensor_config afec_temp_sensor_cfg;
 
-  afec_temp_sensor_get_config_defaults(&afec_temp_sensor_cfg);
-  afec_temp_sensor_set_config(afec, &afec_temp_sensor_cfg);
+	afec_temp_sensor_get_config_defaults(&afec_temp_sensor_cfg);
+	afec_temp_sensor_set_config(afec, &afec_temp_sensor_cfg);
 
-  /* configura IRQ */
-  afec_set_callback(afec, afec_channel, callback, 1);
-  NVIC_SetPriority(afec_id, 4);
-  NVIC_EnableIRQ(afec_id);
+	/* configura IRQ */
+	afec_set_callback(afec, afec_channel, callback, 1);
+	NVIC_SetPriority(afec_id, 4);
+	NVIC_EnableIRQ(afec_id);
 }
 
 
@@ -482,26 +482,26 @@ static void configure_console(void)
 {
 	const usart_serial_options_t uart_serial_options = {
 		.baudrate = CONF_UART_BAUDRATE,
-#if (defined CONF_UART_CHAR_LENGTH)
+		#if (defined CONF_UART_CHAR_LENGTH)
 		.charlength = CONF_UART_CHAR_LENGTH,
-#endif
+		#endif
 		.paritytype = CONF_UART_PARITY,
-#if (defined CONF_UART_STOP_BITS)
+		#if (defined CONF_UART_STOP_BITS)
 		.stopbits = CONF_UART_STOP_BITS,
-#endif
+		#endif
 	};
 
 	/* Configure console UART. */
 	stdio_serial_init(CONF_UART, &uart_serial_options);
 
-/* Specify that stdout should not be buffered. */
-#if defined(__GNUC__)
+	/* Specify that stdout should not be buffered. */
+	#if defined(__GNUC__)
 	setbuf(stdout, NULL);
-#else
-/* Already the case in IAR's Normal DLIB default configuration: printf()
- * emits one character at a time.
- */
-#endif
+	#else
+	/* Already the case in IAR's Normal DLIB default configuration: printf()
+	* emits one character at a time.
+	*/
+	#endif
 }
 
 uint32_t usart_puts(uint8_t *pstring)
@@ -509,8 +509,8 @@ uint32_t usart_puts(uint8_t *pstring)
 	uint32_t i;
 
 	while (*(pstring + i))
-		if (uart_is_tx_empty(USART_COM))
-			usart_serial_putchar(USART_COM, *(pstring + i++));
+	if (uart_is_tx_empty(USART_COM))
+	usart_serial_putchar(USART_COM, *(pstring + i++));
 }
 
 void usart_put_string(Usart *usart, char str[])
@@ -541,7 +541,7 @@ int usart_get_string(Usart *usart, char buffer[], int bufferlen, uint timeout_ms
 }
 
 void usart_send_command(Usart *usart, char buffer_rx[], int bufferlen,
-						char buffer_tx[], int timeout)
+char buffer_tx[], int timeout)
 {
 	usart_put_string(usart, buffer_tx);
 	usart_get_string(usart, buffer_rx, bufferlen, timeout);
@@ -609,15 +609,15 @@ void LEDS_light_up(char flag, int n) {
 		for(int i = 0; i < n; i++) {
 			colorGREEN();
 		}
-	} else if (flag == 'r') {
+		} else if (flag == 'r') {
 		for(int i = 0; i < n; i++) {
 			colorRED();
 		}
-	} else if (flag == 'b') {
+		} else if (flag == 'b') {
 		for(int i = 0; i < n; i++) {
 			colorBLUE();
 		}
-	} else if (flag == 'w') {
+		} else if (flag == 'w') {
 		for(int i = 0; i < n; i++) {
 			colorWHITE();
 		}
@@ -697,9 +697,9 @@ void task_button_handler(void)
 			// Flag 'r', 'b' e 'w' servem para indicar que os LEDs devem acender vermelho, azul ou branco, respectivamente
 			if (botao == '1' || botao == '2' || botao == '3' || botao == '4') {
 				flag = 'r';
-			} else if (botao == '5' || botao == '6' || botao == '7' || botao == '8'){
+				} else if (botao == '5' || botao == '6' || botao == '7' || botao == '8'){
 				flag = 'b';
-			} else {
+				} else {
 				flag = 'w';
 			}
 			envia_dado(botao);
@@ -709,69 +709,69 @@ void task_button_handler(void)
 			vTaskDelay(100);
 		}
 		//else{
-			//printf("botao: 0 \n",);
-			//envia_dado('0');
+		//printf("botao: 0 \n",);
+		//envia_dado('0');
 		//}
 	}
 }
 
 static void task_joy(void *pvParameters) {
-  joy_init();
+	joy_init();
 
 	// Acho que criar a variável como 'joy' acaba criando um array direcao[4] = {'j','o','y','\0'}, mais safe criar como 'X'
 	//char direcao = 'joy';
-  char direcao = 'X';
+	char direcao = 'X';
 
-  /* tarefas de um RTOS não devem retornar */
-  for (;;) {
-    /* verifica se chegou algum dado na queue, e espera por 0 ticks */
-    if (xQueueReceive(xQueueJoy, &direcao, (TickType_t) 0)) {
-      /* chegou novo valor, atualiza delay ! */
-      /* aqui eu poderia verificar se msg faz sentido (se esta no range certo)
-       */
-      /* converte ms -> ticks */
-      
+	/* tarefas de um RTOS não devem retornar */
+	for (;;) {
+		/* verifica se chegou algum dado na queue, e espera por 0 ticks */
+		if (xQueueReceive(xQueueJoy, &direcao, (TickType_t) 0)) {
+			/* chegou novo valor, atualiza delay ! */
+			/* aqui eu poderia verificar se msg faz sentido (se esta no range certo)
+			*/
+			/* converte ms -> ticks */
+			
 			// Acende os LEDs antes do while
 			// Flag 'g' serve para indicar que os LEDs devem acender verde
 			taskENTER_CRITICAL();
 			LEDS_light_up('g', LEDS_NUMBER);
 			taskEXIT_CRITICAL();
-	    
-      while(apertado_joy1 || apertado_joy2 || apertado_joy3 || apertado_joy4){
-		    //wasd
-        if(apertado_joy1 && apertado_joy2) {
-          direcao = 'c';
-          envia_dado(direcao);
-          vTaskDelay(50);
-		    }
-		    if(apertado_joy1 && apertado_joy4){
-          direcao = 'e';
-          envia_dado(direcao);
-          vTaskDelay(50);
-        }
-		    if(apertado_joy3 && apertado_joy2){
-          direcao = 'z';
-          envia_dado(direcao);
-          vTaskDelay(50);
-        }
-		    if(apertado_joy3 && apertado_joy4){
-          direcao = 'q';
-          envia_dado(direcao);
-          vTaskDelay(50);
-        }
-		else{
-			envia_dado(direcao);
-			vTaskDelay(50);
-		}
-        printf("direcao: %c \n", direcao);
-		}
-      if(!apertado_joy1 && !apertado_joy2 && !apertado_joy3 && !apertado_joy4){
-        envia_dado('0');
-        vTaskDelay(50);
-        printf("direcao: %c \n", direcao);
+			
+			while(apertado_joy1 || apertado_joy2 || apertado_joy3 || apertado_joy4){
+				//wasd
+				if(apertado_joy1 && apertado_joy2) {
+					direcao = 'c';
+					envia_dado(direcao);
+					vTaskDelay(50);
+				}
+				if(apertado_joy1 && apertado_joy4){
+					direcao = 'e';
+					envia_dado(direcao);
+					vTaskDelay(50);
+				}
+				if(apertado_joy3 && apertado_joy2){
+					direcao = 'z';
+					envia_dado(direcao);
+					vTaskDelay(50);
+				}
+				if(apertado_joy3 && apertado_joy4){
+					direcao = 'q';
+					envia_dado(direcao);
+					vTaskDelay(50);
+				}
+				else{
+					envia_dado(direcao);
+					vTaskDelay(50);
+				}
+				printf("direcao: %c \n", direcao);
+			}
+			if(!apertado_joy1 && !apertado_joy2 && !apertado_joy3 && !apertado_joy4){
+				envia_dado('0');
+				vTaskDelay(50);
+				printf("direcao: %c \n", direcao);
 				clearLEDs();
-      }
-    }
+			}
+		}
 	}
 }
 
@@ -785,41 +785,41 @@ static void task_vol(void *pvParameters) {
 	// configura ADC e TC para controlar a leitura
 	config_AFEC_pot(AFEC_POT, AFEC_POT_ID, AFEC_POT_CHANNEL, AFEC_pot_callback);
 	
-  xTimer = xTimerCreate(/* Just a text name, not used by the RTOS
-                        kernel. */
-                        "Timer",
-                        /* The timer period in ticks, must be
-                        greater than 0. */
-                        1000,
-                        /* The timers will auto-reload themselves
-                        when they expire. */
-                        pdTRUE,
-                        /* The ID is used to store a count of the
-                        number of times the timer has expired, which
-                        is initialised to 0. */
-                        (void *)0,
-                        /* Timer callback */
-                        vTimerCallback);
-  xTimerStart(xTimer, 0);
+	xTimer = xTimerCreate(/* Just a text name, not used by the RTOS
+	kernel. */
+	"Timer",
+	/* The timer period in ticks, must be
+	greater than 0. */
+	1000,
+	/* The timers will auto-reload themselves
+	when they expire. */
+	pdTRUE,
+	/* The ID is used to store a count of the
+	number of times the timer has expired, which
+	is initialised to 0. */
+	(void *)0,
+	/* Timer callback */
+	vTimerCallback);
+	xTimerStart(xTimer, 0);
 
-  // variável para recever dados da fila
-  uint leitura;
+	// variável para recever dados da fila
+	uint leitura;
 	// Nível de volume dado em:
 	// g = 100%; h = 75%; j = 50%; k = 25%; l = 0%;
 	char nivel_volume = 'X', nivel_anterior = 'X';
 
-  for(;;) {
+	for(;;) {
 		// Verifica se chegou algum dado na Queue
-    if (xQueueReceive(xQueueVOL, &(leitura), 1000)) {
+		if (xQueueReceive(xQueueVOL, &(leitura), 1000)) {
 			if (leitura <= 2300) {
 				nivel_volume = 'l';
-			} else if ((2300 < leitura) && (leitura <= 2600)) {
+				} else if ((2300 < leitura) && (leitura <= 2600)) {
 				nivel_volume = 'k';
-			} else if ((2600 < leitura) && (leitura <= 2900)) {
+				} else if ((2600 < leitura) && (leitura <= 2900)) {
 				nivel_volume = 'j';
-			} else if ((2900 < leitura) && (leitura <= 3500)) {
+				} else if ((2900 < leitura) && (leitura <= 3500)) {
 				nivel_volume = 'h';
-			}	else if (3500 < leitura) {
+				}	else if (3500 < leitura) {
 				nivel_volume = 'g';
 			}
 			
@@ -828,10 +828,10 @@ static void task_vol(void *pvParameters) {
 				envia_dado(nivel_volume);
 				vTaskDelay(100);
 			}
-    } else {
-      printf("Nao chegou um novo dado em 1 segundo \n");
-    }
-  }
+			} else {
+			printf("Nao chegou um novo dado em 1 segundo \n");
+		}
+	}
 }
 
 void create_tasks(){
@@ -855,7 +855,7 @@ void create_tasks(){
 	if (xTaskCreate(task_vol, "VOL", TASK_VOL_STACK_SIZE, NULL,
 	TASK_VOL_STACK_PRIORITY, NULL) != pdPASS) {
 		printf("Falhou ao criar VOL task\r\n");
-	} else {
+		} else {
 		printf("task vol \r\n");
 	}
 }
@@ -889,7 +889,7 @@ int main(void)
 	xQueueVOL = xQueueCreate(100, sizeof(uint));
 	if (xQueueVOL == NULL) {
 		printf("Erro ao criar fila de volume \n");
-	}	
+	}
 
 	
 	/* Create task bluetooth */
