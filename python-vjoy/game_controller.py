@@ -110,7 +110,7 @@ class SerialControllerInterface:
             self.j.set_button(self.mapping.set_button['M'], 0)
             time.sleep(0.1)
         
-        elif data == b'l':
+        elif data == b'r':
             logging.info("Sending press 10")
             self.j.set_button(self.mapping.set_button['N'], 1)
             time.sleep(0.1)

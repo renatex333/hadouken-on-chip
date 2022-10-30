@@ -703,7 +703,6 @@ void task_button_handler(void)
 				flag = 'w';
 			}
 			envia_dado(botao);
-			vTaskDelay(100);
 			taskENTER_CRITICAL();
 			LEDS_light_up(flag, LEDS_NUMBER);
 			taskEXIT_CRITICAL();
@@ -740,22 +739,6 @@ static void task_joy(void *pvParameters) {
 	    
       while(apertado_joy1 || apertado_joy2 || apertado_joy3 || apertado_joy4){
 		    //wasd
-		    if(apertado_joy1 && !apertado_joy2 && !apertado_joy3 && !apertado_joy4){
-			    envia_dado(direcao);
-			    vTaskDelay(50);			  
-		    }
-		    if(apertado_joy2 && !apertado_joy1 && !apertado_joy3 && !apertado_joy4){
-			    envia_dado(direcao);
-			    vTaskDelay(50);
-		    }
-        if(apertado_joy3 && !apertado_joy2 && !apertado_joy1 && !apertado_joy4){
-          envia_dado(direcao);
-          vTaskDelay(50);
-        }
-        if(apertado_joy4 && !apertado_joy2 && !apertado_joy3 && !apertado_joy1){
-          envia_dado(direcao);
-          vTaskDelay(50);
-        }
         if(apertado_joy1 && apertado_joy2) {
           direcao = 'c';
           envia_dado(direcao);
@@ -776,8 +759,12 @@ static void task_joy(void *pvParameters) {
           envia_dado(direcao);
           vTaskDelay(50);
         }
+		else{
+			envia_dado(direcao);
+			vTaskDelay(50);
+		}
         printf("direcao: %c \n", direcao);
-			}
+		}
       if(!apertado_joy1 && !apertado_joy2 && !apertado_joy3 && !apertado_joy4){
         envia_dado('0');
         vTaskDelay(50);
