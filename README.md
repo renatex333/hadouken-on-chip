@@ -83,6 +83,9 @@ Saídas Digitais:
 
 - Acender LEDs em diferentes cores quando determinados botões forem clicados.
 
+## Design
+<img src="https://user-images.githubusercontent.com/15271557/198908819-728bbee0-77de-4ec5-8e0c-bd3db5ab3a85.png" width="500">
+
 ### Relação de pinos utilizados
 
 Nome|Pino|Input/Output
@@ -102,10 +105,17 @@ Joystick LEFT|PB11|Input
 Joystick RIGHT|PB12|Input
 Potenciômetro|PB11|Input
 LEDs|PD28|Output
-## Design
 
-<!--
-Faca um esboco de como seria esse controle (vai ter uma etapa que terão que detalhar melhor isso).
--->
 
-![image](https://user-images.githubusercontent.com/66042074/190531358-5116ef6f-468c-405b-be27-82e65b5749bc.jpg)
+
+
+## Vídeos
+
+### Em Uso [Link](https://youtu.be/yCXOoS1pK4o)
+
+[<img src="https://user-images.githubusercontent.com/15271557/198908619-ab1cbdab-7999-437f-9007-fee7f0ce5355.png" width="500">](https://youtu.be/yCXOoS1pK4o)
+
+### Interação do Usuário [Link](https://youtu.be/Ns-hOR85Mq0)
+
+[<img src="https://user-images.githubusercontent.com/15271557/198908966-eee990e9-d1f7-45cf-b982-692938ca1332.png" width="500">](https://youtu.be/yCXOoS1pK4o)
+
