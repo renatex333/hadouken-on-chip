@@ -698,7 +698,7 @@ void task_button_handler(void)
 			// Flag 'r', 'b' e 'w' servem para indicar que os LEDs devem acender vermelho, azul ou branco, respectivamente
 			if (botao >= '1' || botao <= '4') {
 				flag = 'r';
-				} else if (botao == '5' || botao == '6' || botao == '7' || botao == '8'){
+				} else if (botao >= '5' ||  botao <= '8'){
 				flag = 'b';
 				} else {
 				flag = 'w';
