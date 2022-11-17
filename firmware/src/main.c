@@ -696,7 +696,7 @@ void task_button_handler(void)
 			/* converte ms -> ticks */
 			printf("botao: %c \n", botao);
 			// Flag 'r', 'b' e 'w' servem para indicar que os LEDs devem acender vermelho, azul ou branco, respectivamente
-			if (botao == '1' || botao == '2' || botao == '3' || botao == '4') {
+			if (botao >= '1' || botao <= '4') {
 				flag = 'r';
 				} else if (botao == '5' || botao == '6' || botao == '7' || botao == '8'){
 				flag = 'b';
