@@ -708,10 +708,6 @@ void task_button_handler(void)
 			taskEXIT_CRITICAL();
 			vTaskDelay(100);
 		}
-		//else{
-		//printf("botao: 0 \n",);
-		//envia_dado('0');
-		//}
 	}
 }
 
