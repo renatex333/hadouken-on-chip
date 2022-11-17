@@ -681,6 +681,7 @@ void task_handshake(void)
 
 	}
 }
+
 void task_button_handler(void)
 {
 	char botao = '0', flag = '0';
