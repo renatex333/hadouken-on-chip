@@ -654,17 +654,7 @@ void task_handshake(void)
 		if(handshake == '1'){
 			if(usart_is_tx_ready(USART_COM)){
 				printf("Enviando handshake \n");
-				while (!usart_is_tx_ready(USART_COM))
-				{
-					vTaskDelay(10 / portTICK_PERIOD_MS);
-				}
-				usart_write(USART_COM, 'P');
-
-				while (!usart_is_tx_ready(USART_COM))
-				{
-					vTaskDelay(10 / portTICK_PERIOD_MS);
-				}
-				usart_write(USART_COM, 'X');
+				envia_dado('P');
 			}
 			
 			if(!usart_read(USART_COM, &rx)) {
