@@ -1,13 +1,9 @@
-# Projeto Embarcados - HADOUKEN
+# Projeto HADOUKEN
+
+Autores: Matheus Barros, Lucas Oliveira, Renato Laffranchi Falcão
 
 Desenvolvolvimento de um controle remoto baseado nas tradicionais maquinas
 arcade.
-
-## Integrantes
-
-- Matheus Barros
-- Lucas Oliveira
-- Renato Falcão
 
 ## Ideia
 
